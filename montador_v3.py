@@ -42,7 +42,7 @@ from string import whitespace
 class Endr:
     def __init__(self, value=0):
         self.value = value
-        self.relocavel = 1
+        self._relocavel = 1
 
     def parse(self, val):
         if isinstance(val, int):
@@ -56,18 +56,18 @@ class Endr:
 
     def absoluto(self, val):
         self.value = self.parse(val)
-        self.relocavel = 0
+        self._relocavel = 0
 
     def relocavel(self, val):
         self.value = self.parse(val)
-        self.relocavel = 1
+        self._relocavel = 1
 
     def add(self, val):
         self.value += self.parse(val)
 
     def copy(self, endr):
         self.value = endr.value
-        self.relocavel = endr.relocavel
+        self._relocavel = endr._relocavel
 
 class Montador:
     def __init__(self):
@@ -77,7 +77,7 @@ class Montador:
         if isinstance(op, int):
             # Valor decimal
             return op 
-        elif V_HEX in val:
+        elif V_HEX in op:
             aux = op.replace(V_HEX,'')
             # Valor hexadecimal
             return int(aux, 16)
@@ -89,7 +89,7 @@ class Montador:
                 # String
                 return op
 
-    def tokenziar(self, linha):
+    def tokenizar(self, linha):
         """ Extrai label, instrução e operando de uma linha de código. """
         # Setup
         linha_clean = re.sub(";.*","",linha)
@@ -135,14 +135,17 @@ class Montador:
         return tabela_simbolos[label][0]
 
     def add_label(self, tabela_simbolos, label, endr_linha):
-        tabela_simbolos[label] = [endr_linha.value, endr_linha.relocavel]
+        tabela_simbolos[label] = [endr_linha.value, endr_linha._relocavel]
         pass
 
     #==========================
     # Passos
     #==========================
 
-    def primeiro_passo(self):
+    def add_listagem(self,fila_listagem, endr, endr_end, label, instru, op):
+        pass
+
+    def primeiro_passo(self, codigo):
         """ Extrai as tabelas de símbolos, tabela de entry points,
             tabela de externals.
         """
@@ -164,7 +167,7 @@ class Montador:
             if ORIGEM_ABSOLUTA:
                 endr_linha.absoluto(op)
             elif ORIGEM_RELOCAVEL:
-                endr_linha.relocavel(op)
+                endr_linha._relocavel(op)
             elif FIM:
                 if op != None:
                     FIRST_ENDR = self.solve_label(tabela_simbolos, op)
