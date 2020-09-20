@@ -166,7 +166,7 @@ class Montador:
             elif ORIGEM_RELOCAVEL:
                 endr_linha.relocavel(op)
             elif FIM:
-                if not op == None:
+                if op != None:
                     FIRST_ENDR = self.solve_label(tabela_simbolos, op)
             elif CONSTANTE:
                 size_linha = WORD_SIZE//2
@@ -190,7 +190,7 @@ class Montador:
             endr_linha.add(size_linha)
             
 
-    def segundo_passo(self):
+    def segundo_passo(self, tabela_simbolos, tabela_ent, tabela_ext, fila_listagem):
         """ Processa uma fila de listagem e cria uma fila de montagem. """
         pass
 
