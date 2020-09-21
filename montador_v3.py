@@ -218,7 +218,7 @@ class Montador:
             if op in tabela_simbolos:
                 op = self.solve_label(tabela_simbolos, op)
 
-            # Monta fila de montagem
+            # Monta fila de montagem <-- TODO
 
             
 
