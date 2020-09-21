@@ -209,7 +209,18 @@ class Montador:
 
     def segundo_passo(self, tabela_simbolos, tabela_ent, tabela_ext, fila_listagem):
         """ Processa uma fila de listagem e cria uma fila de montagem. """
-        pass
+
+        for tokens in fila_listagem:
+            # Recebe tokens
+            endr, endr_end, label, instru, op = tokens
+            
+            # Resolve labels
+            if op in tabela_simbolos:
+                op = self.solve_label(tabela_simbolos, op)
+
+            # Monta fila de montagem
+
+            
 
     def montagem_absoluta(self):
         """ Cria um arquivo .hex carregável pelo loader. """
