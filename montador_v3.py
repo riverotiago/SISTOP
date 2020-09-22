@@ -132,7 +132,7 @@ class Montador:
     #==========================
 
     def solve_label(self, tabela_simbolos, label):
-        return tabela_simbolos[label][0]
+        return tuple(tabela_simbolos[label])
 
     def add_label(self, tabela_simbolos, label, endr_linha):
         tabela_simbolos[label] = [endr_linha.value, endr_linha._relocavel]
@@ -177,7 +177,7 @@ class Montador:
                 endr_linha._relocavel(op)
             elif FIM == instru:
                 if op != None:
-                    FIRST_ENDR = self.solve_label(tabela_simbolos, op)
+                    FIRST_ENDR,_ = self.solve_label(tabela_simbolos, op)
             elif CONSTANTE == instru:
                 size_linha = WORD_SIZE//2
                 if label:
@@ -213,13 +213,14 @@ class Montador:
         for tokens in fila_listagem:
             # Recebe tokens
             endr, endr_end, label, instru, op = tokens
+
+            endr_rel = op_rel = True
             
-            # Resolve labels
+            # Resolve labels no operando
             if op in tabela_simbolos:
-                op = self.solve_label(tabela_simbolos, op)
+                op, op_rel = self.solve_label(tabela_simbolos, op)
 
             # Monta fila de montagem <-- TODO
-
             
 
     def montagem_absoluta(self):
