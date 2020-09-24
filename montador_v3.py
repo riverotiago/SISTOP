@@ -11,8 +11,9 @@
 INSTRUCOES = {
     "JP":0, "JZ":1, "JN":2, "LV":3, "+":4, "-":5, "*":6, "/":7, "LD":8,
     "MM":9, "SC":0xA, "RS":0xB, "HM":0xC, "GD":0xD, "PD":0xE, "OS":0xF,
-    ">>":0x10,"<<":0x11,"&&":0x12, "CP":0x13
+    ">>":0x10,"<<":0x11,"&&":0x12, "CP":0x13, "JPE":0x14, "JPNE": 0x15
 }
+OP_ABS_INSTRUCOES = ["LV", "K", "OS", "CP", ">>", "<<", "&&"]
 LISTA_INSTRUCOES = INSTRUCOES.keys()
 
 # Pseudo-instruções
@@ -153,7 +154,6 @@ class Montador:
             tabela de externals.
         """
         FIRST_ENDR = 0
-        LAST_ENDR = 1
 
         endr_linha = Endr()
         size_linha = 0
@@ -218,10 +218,11 @@ class Montador:
             register_line = False
 
         print(tabela_simbolos)
-        return (tabela_simbolos, tabela_ent, tabela_ext, fila_listagem), overlay_table
+        return (tabela_simbolos, tabela_ent, tabela_ext, fila_listagem), FIRST_ENDR, overlay_table
 
     def criar_linha_montagem(self, endr, endr_end, endr_rel, instru, op, op_rel):
         """ Cria uma linha com os dados recebidos e acrescenta dados para a montagem. """
+        global INSTRUCOES 
         # 	00 0a 0xxx bb
         # 	01 0a 0xxx bbbbbb
         size = endr_end - endr
@@ -237,6 +238,8 @@ class Montador:
 
     def segundo_passo(self, tabela_simbolos, tabela_ent, tabela_ext, fila_listagem):
         """ Processa uma fila de listagem e cria uma fila de montagem. """
+        global OP_ABS_INSTRUCOES
+
         fila_montagem = []
 
         for tokens in fila_listagem:
@@ -245,10 +248,14 @@ class Montador:
             endr, endr_end, endr_rel, label, instru, op = tokens
 
             endr_rel = op_rel = True
-            
+
             # Resolve labels no operando
             if op in tabela_simbolos:
                 op, op_rel = self.solve_label(tabela_simbolos, op)
+
+            # Resolve relocabilidade do operando
+            if instru in OP_ABS_INSTRUCOES:
+                op_rel = False
 
             # Monta fila de montagem
             linha_montagem = self.criar_linha_montagem(endr, endr_end, endr_rel, instru, op, op_rel)
@@ -257,28 +264,35 @@ class Montador:
 
         return fila_montagem
 
-    def montagem_absoluta(self, fila_montagem):
-        """ Cria um arquivo .hex carregável pelo loader. """
-        pass
-
-
-    def montagem_relocavel(self):
-        """ Cria um arquivo .robj carregável pelo linker. """
-        pass
-
     def format_bytes(self, tipo, nibble_rel, endr, value, loader=False):
         """ Formata os parâmetros segundo especificação do loader. """
         if loader and tipo == 0:
             return f"{endr:04X}{value:02X}"
         elif loader and tipo == 1:
             b2 = value >> 16
-            b1 = (value & 0xFF) >> 8
-            b0 = (value & 0xF)
+            b1 = (value & 0xFFFF) >> 8
+            b0 = (value & 0xFF)
+            print("formatting", b2, b1, b0)
             return f"{endr:04X}{b2:02X}{endr+1:04X}{b1:02X}{endr+2:04X}{b0:02X}"
         elif tipo == 0:
             return f"{tipo:02X}{nibble_rel:02X}{endr:04X}{value:02X}"
         elif tipo == 1:
             return f"{tipo:02X}{nibble_rel:02X}{endr:04X}{value:06X}"
+
+    def montagem_absoluta(self, fila_montagem, FIRST_ENDR):
+        """ Cria um arquivo .hex carregável pelo loader. """
+        code_hex = ''
+        for linha in fila_montagem:
+            s = self.format_bytes(*linha)
+            code_hex += s
+
+        code_hex += f'FF{FIRST_ENDR:04X}'
+        return code_hex
+
+
+    def montagem_relocavel(self):
+        """ Cria um arquivo .robj carregável pelo linker. """
+        pass
 
     def montagem_loader(self, fila_montagem):
         """ Cria um arquivo .hex carregável pela MVN. """
@@ -288,17 +302,28 @@ class Montador:
             code_hex += s
         return code_hex
 
+    def write_hex(self, filepath, code_hex):
+        with open(f'{filepath}.hex',"w+") as s:
+            s.write(code_hex)
+
     def montar(self, filepath, tipo='absoluta'):
         f = open(f'{filepath}.asm', "r+")
 
         if tipo == 'loader':
-            p1, overlays = self.primeiro_passo(f)
+            p1, FIRST_ENDR, overlays = self.primeiro_passo(f)
             fila_montagem = self.segundo_passo(*p1)
             code_hex = self.montagem_loader(fila_montagem)
             print(code_hex)
-            with open(f'{filepath}.hex',"w+") as s:
-                s.write(code_hex)
+            self.write_hex(filepath, code_hex)
+
+        elif tipo == 'absoluta':
+            p1, FIRST_ENDR, overlays = self.primeiro_passo(f)
+            fila_montagem = self.segundo_passo(*p1)
+            code_hex = self.montagem_absoluta(fila_montagem, FIRST_ENDR)
+            print(code_hex)
+            self.write_hex(filepath, code_hex)
 
 
 m = Montador()
 m.montar('loader', 'loader')
+m.montar('print100')
