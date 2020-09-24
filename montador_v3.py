@@ -10,7 +10,8 @@
 # Instruções
 INSTRUCOES = {
     "JP":0, "JZ":1, "JN":2, "LV":3, "+":4, "-":5, "*":6, "/":7, "LD":8,
-    "MM":9, "SC":0xA, "RS":0xB, "HM":0xC, "GD":0xD, "PD":0xE, "OS":0xF
+    "MM":9, "SC":0xA, "RS":0xB, "HM":0xC, "GD":0xD, "PD":0xE, "OS":0xF,
+    ">>":0x10,"<<":0x11,"&&":0x12, "CP":0x13
 }
 LISTA_INSTRUCOES = INSTRUCOES.keys()
 
@@ -142,7 +143,7 @@ class Montador:
     # Passos
     #==========================
 
-    def add_listagem(self,fila_listagem, endr, endr_end, label, instru, op):
+    def add_listagem(self,fila_listagem, endr, endr_end, endr_rel, label, instru, op):
         pass
 
     def primeiro_passo(self, codigo):
@@ -194,25 +195,38 @@ class Montador:
             elif OVERLAYEND == instru:
                 register_overlay = False
             else:
-                size_linha = WORD_SIZE
+                size_linha = WORD_SIZE+1
 
             if register_overlay:
                 endr_end_linha = overlay_endr_linha.value + size_linha - 1
-                self.add_listagem(overlay_table[overlay_n], endr_linha.value, endr_end_linha, label, instru, op)
-                ov_endr_linha.add(size_linha)
+                self.add_listagem(overlay_table[overlay_n], endr_linha.value, endr_end_linha, endr_linha.relocavel, label, instru, op)
+                overlay_endr_linha.add(size_linha)
             else:
                 endr_end_linha = endr_linha.value + size_linha - 1
-                self.add_listagem(fila_listagem, endr_linha.value, endr_end_linha, label, instru, op)
+                self.add_listagem(fila_listagem, endr_linha.value, endr_end_linha, endr_linha.relocavel, label, instru, op)
                 endr_linha.add(size_linha)
 
-        return tabela_simbolos, tabela_ent, tabela_ext, fila_listagem, overlay_table
+        return (tabela_simbolos, tabela_ent, tabela_ext, fila_listagem), overlay_table
+
+    def criar_linha_montagem(self, endr, endr_end, endr_rel, instru, op, op_rel):
+        """ Cria uma linha com os dados recebidos e acrescenta dados para a montagem. """
+        # 	00 0a 0xxx bb
+        # 	01 0a 0xxx bbbbbb
+        size = endr_end - endr
+        tipo = 0 if size == 1 else 1
+        nibble_rel = 2*endr_rel + op_rel
+        if tipo == 1:
+            return [tipo, nibble_rel, endr, instru]
+        else:
+            return [tipo, nibble_rel, endr, instru << 16 + op]
 
     def segundo_passo(self, tabela_simbolos, tabela_ent, tabela_ext, fila_listagem):
         """ Processa uma fila de listagem e cria uma fila de montagem. """
+        fila_montagem = []
 
         for tokens in fila_listagem:
             # Recebe tokens
-            endr, endr_end, label, instru, op = tokens
+            endr, endr_end, endr_rel, label, instru, op = tokens
 
             endr_rel = op_rel = True
             
@@ -220,17 +234,39 @@ class Montador:
             if op in tabela_simbolos:
                 op, op_rel = self.solve_label(tabela_simbolos, op)
 
-            # Monta fila de montagem <-- TODO
-            
+            # Monta fila de montagem
+            linha_montagem = self.criar_linha_montagem(endr, endr_end, endr_rel, instru, op, op_rel)
 
-    def montagem_absoluta(self):
+            fila_montagem.append(linha_montagem)
+
+        return fila_montagem
+
+    def montagem_absoluta(self, fila_montagem):
         """ Cria um arquivo .hex carregável pelo loader. """
         pass
+
 
     def montagem_relocavel(self):
         """ Cria um arquivo .robj carregável pelo linker. """
         pass
 
-    def montagem_loader(self):
+    def montagem_loader(self, fila_montagem):
         """ Cria um arquivo .hex carregável pela MVN. """
-        pass
+        for linha in fila_montagem:
+            print(linha)
+
+        return ''
+
+    def montar(self, filepath, tipo='absoluta'):
+        f = open(f'{filepath}.asm', "r+")
+
+        if tipo == 'loader':
+            p1, overlays = self.primeiro_passo(f)
+            fila_montagem = self.segundo_passo(*p1)
+            code_hex = self.montagem_loader(fila_montagem)
+            with open(f'{filepath}.hex',"w+") as s:
+                s.write(code_hex)
+
+        
+
+

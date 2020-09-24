@@ -5,7 +5,6 @@
 ##############################
 
 from motordeeventos import MotorDeEventos, Evento
-from overlay import MonitorDeOverlay
 
 #================
 # CONSTANTES
@@ -44,16 +43,16 @@ class Simulador():
     #=====================
     # Utils
     #=====================
-    def readByte(op):
+    def readByte(self,op):
         return self.MEM[op]
 
-    def storeByte(op, b=None):
+    def storeByte(self,op, b=None):
         if b == None:
             self.MEM[op+self.offset] = self.AC
         else:
             self.MEM[op+self.offset] = b
 
-    def storeWord(op, word):
+    def storeWord(self,op, word):
         self.storeByte(op, word >> 8)
         self.storeByte(op, word & 0xFF)
 
@@ -193,12 +192,12 @@ class Simulador():
         # Carrega o overlay
         self.load(f"overlay{n}.hex")
         # Extrai o tamanho
-        self.offset = self.extrai_tamanho(self.buffer)
+        self.offset = self.extrai_tamanho()
         # Ponteiro para o final do último bloco
         b1 = self.readByte(2)
         b0 = self.readByte(3)
         # Calculo da nova posição do ponteiro
-        endr = (b1 << 8 + b0) + offset
+        endr = (b1 << 8 + b0) + self.offset
         # Guardamos a nova palavra
         self.storeWord(2, endr)
         # Coloca o contador de instruções para o início do loader
@@ -210,6 +209,9 @@ class Simulador():
 
     def dump(self, endr_ini=0, endr_end=0xFFF):
         pass
+
+    def getNextInstruction(self):
+        return 1,2
 
     def run(self, filepath):
         self.load(filepath)
