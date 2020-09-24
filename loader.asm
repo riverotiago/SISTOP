@@ -20,14 +20,14 @@
 ;2 /0 /1 /2 /3 /4 /5 /6 /7 /8 /9 /a /b /c /d /e /f
 ;
 
-        @$ 30
+        @$ /30
 inicio  GD
         JN fim ; Detecta byte FF, fim do arquivo
         JZ const ; Trata constantes
 
 ; Trata instruçoes
         ; Armazena o endereço e o nibble de relocabilidade
-const   GD    
+        GD    
         MM /0
         GD
         MM /1
@@ -36,7 +36,7 @@ const   GD
         GD
         MM /3
         ; Escreve a instrução e reloca caso necessário
-        SO /2 
+        OS /2 
         MM /0
         JP inicio
 
@@ -51,7 +51,7 @@ const   GD
         GD
         MM /3
         ; Escreve a constante e reloca caso necessário
-        SO /1
+        OS /1
         JP inicio
 
 ; Escreve o primeiro endereço válido

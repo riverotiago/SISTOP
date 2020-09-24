@@ -144,7 +144,9 @@ class Montador:
     #==========================
 
     def add_listagem(self,fila_listagem, endr, endr_end, endr_rel, label, instru, op):
-        pass
+        """ Cria uma lista listagem e a adiciona a fila. """
+        listagem = [endr, endr_end, endr_rel, label, instru, op]
+        fila_listagem.append(listagem)
 
     def primeiro_passo(self, codigo):
         """ Extrai as tabelas de símbolos, tabela de entry points,
@@ -155,6 +157,7 @@ class Montador:
 
         endr_linha = Endr()
         size_linha = 0
+        register_line = False
 
         # Overlays
         overlay_endr_linha = Endr()
@@ -169,6 +172,8 @@ class Montador:
 
         for linha in codigo:
             label, instru, op, comentario = self.tokenizar(linha)
+            if label == None and instru == None and op == None:
+                continue
             size_linha = 0
 
             # Trata símbolos encontrados
@@ -180,9 +185,8 @@ class Montador:
                 if op != None:
                     FIRST_ENDR,_ = self.solve_label(tabela_simbolos, op)
             elif CONSTANTE == instru:
+                register_line = True
                 size_linha = WORD_SIZE//2
-                if label:
-                    self.add_label(tabela_simbolos, label, endr_linha)
             elif EXTERNAL == instru:
                 pass
             elif ENTRY == instru:
@@ -195,17 +199,25 @@ class Montador:
             elif OVERLAYEND == instru:
                 register_overlay = False
             else:
+                register_line = True
                 size_linha = WORD_SIZE+1
+
+            if label:
+                self.add_label(tabela_simbolos, label, endr_linha)
 
             if register_overlay:
                 endr_end_linha = overlay_endr_linha.value + size_linha - 1
-                self.add_listagem(overlay_table[overlay_n], endr_linha.value, endr_end_linha, endr_linha.relocavel, label, instru, op)
+                self.add_listagem(overlay_table[overlay_n], endr_linha.value, endr_end_linha, endr_linha._relocavel, label, instru, op)
                 overlay_endr_linha.add(size_linha)
-            else:
+            elif register_line:
                 endr_end_linha = endr_linha.value + size_linha - 1
-                self.add_listagem(fila_listagem, endr_linha.value, endr_end_linha, endr_linha.relocavel, label, instru, op)
+                self.add_listagem(fila_listagem, endr_linha.value, endr_end_linha, endr_linha._relocavel, label, instru, op)
                 endr_linha.add(size_linha)
 
+
+            register_line = False
+
+        print(tabela_simbolos)
         return (tabela_simbolos, tabela_ent, tabela_ext, fila_listagem), overlay_table
 
     def criar_linha_montagem(self, endr, endr_end, endr_rel, instru, op, op_rel):
@@ -215,10 +227,13 @@ class Montador:
         size = endr_end - endr
         tipo = 0 if size == 1 else 1
         nibble_rel = 2*endr_rel + op_rel
-        if tipo == 1:
-            return [tipo, nibble_rel, endr, instru]
+        if tipo == 0:
+            return [tipo, nibble_rel, endr, op]
         else:
-            return [tipo, nibble_rel, endr, instru << 16 + op]
+            op = op if op else 0
+            instru = INSTRUCOES[instru]
+            print( tipo, nibble_rel, endr, hex((instru << 16) + op) )
+            return [tipo, nibble_rel, endr, (instru << 16) + op]
 
     def segundo_passo(self, tabela_simbolos, tabela_ent, tabela_ext, fila_listagem):
         """ Processa uma fila de listagem e cria uma fila de montagem. """
@@ -226,6 +241,7 @@ class Montador:
 
         for tokens in fila_listagem:
             # Recebe tokens
+            print(tokens, end=' -> ')
             endr, endr_end, endr_rel, label, instru, op = tokens
 
             endr_rel = op_rel = True
@@ -250,12 +266,27 @@ class Montador:
         """ Cria um arquivo .robj carregável pelo linker. """
         pass
 
+    def format_bytes(self, tipo, nibble_rel, endr, value, loader=False):
+        """ Formata os parâmetros segundo especificação do loader. """
+        if loader and tipo == 0:
+            return f"{endr:04X}{value:02X}"
+        elif loader and tipo == 1:
+            b2 = value >> 16
+            b1 = (value & 0xFF) >> 8
+            b0 = (value & 0xF)
+            return f"{endr:04X}{b2:02X}{endr+1:04X}{b1:02X}{endr+2:04X}{b0:02X}"
+        elif tipo == 0:
+            return f"{tipo:02X}{nibble_rel:02X}{endr:04X}{value:02X}"
+        elif tipo == 1:
+            return f"{tipo:02X}{nibble_rel:02X}{endr:04X}{value:06X}"
+
     def montagem_loader(self, fila_montagem):
         """ Cria um arquivo .hex carregável pela MVN. """
+        code_hex = ''
         for linha in fila_montagem:
-            print(linha)
-
-        return ''
+            s = self.format_bytes(*linha,loader=True)
+            code_hex += s
+        return code_hex
 
     def montar(self, filepath, tipo='absoluta'):
         f = open(f'{filepath}.asm', "r+")
@@ -264,9 +295,10 @@ class Montador:
             p1, overlays = self.primeiro_passo(f)
             fila_montagem = self.segundo_passo(*p1)
             code_hex = self.montagem_loader(fila_montagem)
+            print(code_hex)
             with open(f'{filepath}.hex',"w+") as s:
                 s.write(code_hex)
 
-        
 
-
+m = Montador()
+m.montar('loader', 'loader')

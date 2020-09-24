@@ -208,7 +208,17 @@ class Simulador():
         self.INSTRUCOES[instru](op)
 
     def dump(self, endr_ini=0, endr_end=0xFFF):
-        pass
+        """ Retorna o conteúdo formatado da memória RAM de endr_ini a endr_end. """
+        print_ini = endr_ini&0xFF0
+        print_end = endr_end|0xF
+        b = self.MEM[print_ini:print_end+1]
+        n = len(b)//16
+        print_string = "   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\n"
+        for k in range(n):
+            print_string += f"{(print_ini >> 4)+k:02X} "
+            print_string += ' '.join(f"{byte:02X}" for byte in b[k*16:k*16+16])
+            print_string += '\n'
+        return print_string
 
     def getNextInstruction(self):
         return 1,2
@@ -221,8 +231,7 @@ class Simulador():
             instru, op = self.getNextInstruction()
             self.tratar(instru, op)
 
-#s = Simulador()
 #print(s.MEM[:50])
 print("INICIANDO MVN")
-print(0)
-print(16)
+s = Simulador()
+print(s.dump(0x30,0x8D))
