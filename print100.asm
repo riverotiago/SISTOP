@@ -1,5 +1,6 @@
 ;/////////////////////////////
-;// Programa 1 - Printar os números de 100 a 0
+;// Programa 1
+;// Printar os números de 100 a 0
 
         @$ /100
 ini     LV 100 ; Carrega val = 100 no acumulador 
