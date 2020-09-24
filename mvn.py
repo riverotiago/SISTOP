@@ -247,12 +247,15 @@ class Simulador():
     def extrai_tamanho(self):
         return len(self.buffer)
 
-    def load(self, filepath):
-        self.CI = 0x10
+    def load_buffer(self, filepath):
         f = open(filepath, "r+").read().strip()
         self.buffer = f
         self.buffer_CI = 0
         self.buffer_len = len(f)
+
+    def load(self, filepath):
+        self.CI = 0x10
+        self.load_buffer(filepath)
 
         print("STARTED LOADING")
         self.state = 1
