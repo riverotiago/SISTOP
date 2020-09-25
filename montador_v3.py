@@ -194,7 +194,7 @@ class Montador:
             elif OVERLAY == instru:
                 register_overlay = True
                 overlay_n = op
-                overlay_table[overlay_n] = [] # Cria fila de listagem do overlay_n
+                overlay_table[overlay_n] = {'meta':[], 'listagem':[]} # Cria fila de listagem do overlay_n
                 overlay_endr_linha.relocavel(0) # Re-inicializa o endereço relc. para 0
             elif OVERLAYEND == instru:
                 register_overlay = False
@@ -202,16 +202,20 @@ class Montador:
                 register_line = True
                 size_linha = WORD_SIZE+1
 
-            if label:
+            if label and register_overlay:
+                self.add_label(tabela_simbolos, label, overlay_endr_linha)
+            elif label:
                 self.add_label(tabela_simbolos, label, endr_linha)
 
             if register_overlay:
                 endr_end_linha = overlay_endr_linha.value + size_linha - 1
-                self.add_listagem(overlay_table[overlay_n], endr_linha.value, endr_end_linha, endr_linha._relocavel, label, instru, op)
+                self.add_listagem(overlay_table[overlay_n]['listagem'], overlay_endr_linha.value, endr_end_linha,\
+                                  overlay_endr_linha._relocavel, label, instru, op)
                 overlay_endr_linha.add(size_linha)
             elif register_line:
                 endr_end_linha = endr_linha.value + size_linha - 1
-                self.add_listagem(fila_listagem, endr_linha.value, endr_end_linha, endr_linha._relocavel, label, instru, op)
+                self.add_listagem(fila_listagem, endr_linha.value, endr_end_linha, \
+                                  endr_linha._relocavel,label, instru, op)
                 endr_linha.add(size_linha)
 
 
