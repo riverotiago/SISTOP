@@ -149,6 +149,54 @@ class Montador:
         listagem = [endr, endr_end, endr_rel, label, instru, op]
         fila_listagem.append(listagem)
 
+    def analisar_linha1(self, string_linha, endr_linha, tabela_simbolos, tabela_ext, tabela_ent, fila_listagem, overlay_table):
+        label, instru, op, comentario = self.tokenizar(string_linha)
+        if label == None and instru == None and op == None:
+            return False
+        size_linha = 0
+
+        # Trata símbolos encontrados
+        if ORIGEM_ABSOLUTA == instru:
+            endr_linha.absoluto(op)
+        elif ORIGEM_RELOCAVEL == instru:
+            endr_linha._relocavel(op)
+        elif FIM == instru:
+            if op != None:
+                FIRST_ENDR,_ = self.solve_label(tabela_simbolos, op)
+        elif CONSTANTE == instru:
+            register_line = True
+            size_linha = WORD_SIZE//2
+        elif EXTERNAL == instru:
+            pass
+        elif ENTRY == instru:
+            pass
+        elif OVERLAY == instru:
+            register_overlay = True
+            overlay_n = op
+            overlay_table[overlay_n] = {'meta':[], 'listagem':[]} # Cria fila de listagem do overlay_n
+        elif OVERLAYEND == instru:
+            register_overlay = False
+        else:
+            register_line = True
+            size_linha = WORD_SIZE+1
+
+        if label:
+            self.add_label(tabela_simbolos, label, endr_linha)
+
+        if register_overlay:
+            overlay_table[overlay_n]['listagem'].append( string_linha )
+
+        elif register_line:
+            endr_end_linha = endr_linha.value + size_linha - 1
+            self.add_listagem(fila_listagem, endr_linha.value, endr_end_linha, \
+                                endr_linha._relocavel,label, instru, op)
+            endr_linha.add(size_linha)
+
+        register_line = False
+
+        return True
+
+
     def primeiro_passo(self, codigo):
         """ Extrai as tabelas de símbolos, tabela de entry points,
             tabela de externals.
@@ -162,64 +210,19 @@ class Montador:
         # Overlays
         overlay_endr_linha = Endr()
         register_overlay = False
-        overlay_table = {}
         overlay_n = 0
 
+        # Tabelas
+        overlay_table = {}
         tabela_simbolos = {}
         tabela_ext = {}
         tabela_ent = {}
         fila_listagem = []
 
-        for linha in codigo:
-            label, instru, op, comentario = self.tokenizar(linha)
-            if label == None and instru == None and op == None:
+        for string_linha in codigo:
+            if not self.analisar_linha1(string_linha, endr_linha, tabela_simbolos, tabela_ext, tabela_ent, \
+                 fila_listagem,  overlay_table):
                 continue
-            size_linha = 0
-
-            # Trata símbolos encontrados
-            if ORIGEM_ABSOLUTA == instru:
-                endr_linha.absoluto(op)
-            elif ORIGEM_RELOCAVEL == instru:
-                endr_linha._relocavel(op)
-            elif FIM == instru:
-                if op != None:
-                    FIRST_ENDR,_ = self.solve_label(tabela_simbolos, op)
-            elif CONSTANTE == instru:
-                register_line = True
-                size_linha = WORD_SIZE//2
-            elif EXTERNAL == instru:
-                pass
-            elif ENTRY == instru:
-                pass
-            elif OVERLAY == instru:
-                register_overlay = True
-                overlay_n = op
-                overlay_table[overlay_n] = {'meta':[], 'listagem':[]} # Cria fila de listagem do overlay_n
-                overlay_endr_linha.relocavel(0) # Re-inicializa o endereço relc. para 0
-            elif OVERLAYEND == instru:
-                register_overlay = False
-            else:
-                register_line = True
-                size_linha = WORD_SIZE+1
-
-            if label and register_overlay:
-                self.add_label(tabela_simbolos, label, overlay_endr_linha)
-            elif label:
-                self.add_label(tabela_simbolos, label, endr_linha)
-
-            if register_overlay:
-                endr_end_linha = overlay_endr_linha.value + size_linha - 1
-                self.add_listagem(overlay_table[overlay_n]['listagem'], overlay_endr_linha.value, endr_end_linha,\
-                                  overlay_endr_linha._relocavel, label, instru, op)
-                overlay_endr_linha.add(size_linha)
-            elif register_line:
-                endr_end_linha = endr_linha.value + size_linha - 1
-                self.add_listagem(fila_listagem, endr_linha.value, endr_end_linha, \
-                                  endr_linha._relocavel,label, instru, op)
-                endr_linha.add(size_linha)
-
-
-            register_line = False
 
         print(tabela_simbolos)
         return (tabela_simbolos, tabela_ent, tabela_ext, fila_listagem), FIRST_ENDR, overlay_table
