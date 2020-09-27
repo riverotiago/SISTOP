@@ -149,6 +149,8 @@ class Montador:
         listagem = [endr, endr_end, endr_rel, label, instru, op]
         fila_listagem.append(listagem)
 
+    # < --- TODO --- Facilitar a extração de overlays
+    # variável register_overlay precisa estar no contexto de primeiro passo e analisar linha
     def analisar_linha1(self, string_linha, endr_linha,  fila_listagem, tabela):
         """ Extrai dados de uma linha de código para as tabelas e para a listagem. """
         label, instru, op, comentario = self.tokenizar(string_linha)
@@ -224,6 +226,7 @@ class Montador:
         size_linha = 0
 
         # Overlays
+        register_overlay = False
         overlay_endr_linha = Endr()
         overlay_n = 0
 
@@ -236,7 +239,8 @@ class Montador:
         tabela = {'simbolos':tabela_simbolos, 'ext':tabela_ext, 'ent':tabela_ent, 'overlay': overlay_table}
 
         for string_linha in codigo:
-            next_endr_linha = self.analisar_linha1(string_linha, endr_linha, fila_listagem, tabela)
+            next_endr_linha, found_overlay  = self.analisar_linha1(string_linha,\
+                                                    endr_linha, fila_listagem, tabela)
 
             if next_endr_linha == False:
                 continue
