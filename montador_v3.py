@@ -149,42 +149,62 @@ class Montador:
         listagem = [endr, endr_end, endr_rel, label, instru, op]
         fila_listagem.append(listagem)
 
-    def analisar_linha1(self, string_linha, endr_linha, tabela_simbolos, tabela_ext, tabela_ent, fila_listagem, overlay_table):
+    def analisar_linha1(self, string_linha, endr_linha,  fila_listagem, tabela):
+        """ Extrai dados de uma linha de código para as tabelas e para a listagem. """
         label, instru, op, comentario = self.tokenizar(string_linha)
         if label == None and instru == None and op == None:
             return False
-        size_linha = 0
 
-        # Trata símbolos encontrados
+        #//////////////////////////////
+        #// Declaração 
+        FIRST_ENDR = 0
+        size_linha = 0
+        register_line = False
+        register_overlay = False
+
+        #//////////////////////////////
+        #// Decisão
         if ORIGEM_ABSOLUTA == instru:
             endr_linha.absoluto(op)
+
         elif ORIGEM_RELOCAVEL == instru:
             endr_linha._relocavel(op)
+
         elif FIM == instru:
-            if op != None:
-                FIRST_ENDR,_ = self.solve_label(tabela_simbolos, op)
+            pass
+
         elif CONSTANTE == instru:
             register_line = True
             size_linha = WORD_SIZE//2
+
         elif EXTERNAL == instru:
             pass
+
         elif ENTRY == instru:
             pass
+
         elif OVERLAY == instru:
             register_overlay = True
             overlay_n = op
-            overlay_table[overlay_n] = {'meta':[], 'listagem':[]} # Cria fila de listagem do overlay_n
+            tabela['overlay'][overlay_n] = {'meta':[], 'listagem':[]} # Cria fila de listagem do overlay_n
+
         elif OVERLAYEND == instru:
             register_overlay = False
+
         else:
+            # Trata instruções não pseudo
             register_line = True
             size_linha = WORD_SIZE+1
 
+        #//////////////////////////////
+        #// Extrai label
         if label:
-            self.add_label(tabela_simbolos, label, endr_linha)
+            self.add_label(tabela['simbolos'], label, endr_linha)
 
-        if register_overlay:
-            overlay_table[overlay_n]['listagem'].append( string_linha )
+        #//////////////////////////////
+        #// Registro de listagem
+        if register_overlay: # Separa o overlay do resto do código
+            tabela['overlay'][overlay_n]['listagem'].append( string_linha )
 
         elif register_line:
             endr_end_linha = endr_linha.value + size_linha - 1
@@ -192,24 +212,19 @@ class Montador:
                                 endr_linha._relocavel,label, instru, op)
             endr_linha.add(size_linha)
 
-        register_line = False
-
-        return True
+        return endr_linha 
 
 
     def primeiro_passo(self, codigo):
         """ Extrai as tabelas de símbolos, tabela de entry points,
             tabela de externals.
         """
-        FIRST_ENDR = 0
-
+        print("/"*50,f"\n// Primeiro passo\n")
         endr_linha = Endr()
         size_linha = 0
-        register_line = False
 
         # Overlays
         overlay_endr_linha = Endr()
-        register_overlay = False
         overlay_n = 0
 
         # Tabelas
@@ -218,14 +233,19 @@ class Montador:
         tabela_ext = {}
         tabela_ent = {}
         fila_listagem = []
+        tabela = {'simbolos':tabela_simbolos, 'ext':tabela_ext, 'ent':tabela_ent, 'overlay': overlay_table}
 
         for string_linha in codigo:
-            if not self.analisar_linha1(string_linha, endr_linha, tabela_simbolos, tabela_ext, tabela_ent, \
-                 fila_listagem,  overlay_table):
+            next_endr_linha = self.analisar_linha1(string_linha, endr_linha, fila_listagem, tabela)
+
+            if next_endr_linha == False:
                 continue
+            else:
+                endr_linha = next_endr_linha
+
 
         print(tabela_simbolos)
-        return (tabela_simbolos, tabela_ent, tabela_ext, fila_listagem), FIRST_ENDR, overlay_table
+        return (tabela_simbolos, tabela_ent, tabela_ext, fila_listagem), overlay_table
 
     def criar_linha_montagem(self, endr, endr_end, endr_rel, instru, op, op_rel):
         """ Cria uma linha com os dados recebidos e acrescenta dados para a montagem. """
@@ -247,7 +267,13 @@ class Montador:
         """ Processa uma fila de listagem e cria uma fila de montagem. """
         global OP_ABS_INSTRUCOES
 
+        print("/"*50,f"\n// Segundo passo\n")
+
         fila_montagem = []
+
+        # Extrair primeiro e ultimo endereço
+        FIRST_ENDR = fila_listagem[0][0]
+        LAST_ENDR = fila_listagem[-1][1]
 
         for tokens in fila_listagem:
             # Recebe tokens
@@ -269,7 +295,7 @@ class Montador:
 
             fila_montagem.append(linha_montagem)
 
-        return fila_montagem
+        return fila_montagem, (FIRST_ENDR, LAST_ENDR)
 
     def format_bytes(self, tipo, nibble_rel, endr, value, loader=False):
         """ Formata os parâmetros segundo especificação do loader. """
@@ -286,13 +312,14 @@ class Montador:
         elif tipo == 1:
             return f"{tipo:02X}{nibble_rel:02X}{endr:04X}{value:06X}"
 
-    def montagem_absoluta(self, fila_montagem, FIRST_ENDR):
+    def montagem_absoluta(self, fila_montagem, ENDR_LIMITES):
         """ Cria um arquivo .hex carregável pelo loader. """
         code_hex = ''
         for linha in fila_montagem:
             s = self.format_bytes(*linha)
             code_hex += s
 
+        FIRST_ENDR, LAST_ENDR = ENDR_LIMITES
         code_hex += f'FF{FIRST_ENDR:04X}'
         return code_hex
 
@@ -315,18 +342,19 @@ class Montador:
 
     def montar(self, filepath, tipo='absoluta'):
         f = open(f'{filepath}.asm', "r+")
+        print(f"\n====== Montando {filepath} ======")
 
         if tipo == 'loader':
-            p1, FIRST_ENDR, overlays = self.primeiro_passo(f)
-            fila_montagem = self.segundo_passo(*p1)
+            p1, overlays = self.primeiro_passo(f)
+            fila_montagem, ENDR_LIMITES = self.segundo_passo(*p1)
             code_hex = self.montagem_loader(fila_montagem)
             print(code_hex)
             self.write_hex(filepath, code_hex)
 
         elif tipo == 'absoluta':
-            p1, FIRST_ENDR, overlays = self.primeiro_passo(f)
-            fila_montagem = self.segundo_passo(*p1)
-            code_hex = self.montagem_absoluta(fila_montagem, FIRST_ENDR)
+            p1, overlays = self.primeiro_passo(f)
+            fila_montagem, ENDR_LIMITES = self.segundo_passo(*p1)
+            code_hex = self.montagem_absoluta(fila_montagem, ENDR_LIMITES)
             print(code_hex)
             self.write_hex(filepath, code_hex)
 
@@ -334,3 +362,4 @@ class Montador:
 m = Montador()
 m.montar('loader', 'loader')
 m.montar('print100')
+m.montar('teste_overlay1')
