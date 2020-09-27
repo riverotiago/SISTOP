@@ -162,7 +162,6 @@ class Montador:
         FIRST_ENDR = 0
         size_linha = 0
         register_line = False
-        register_overlay = False
 
         #//////////////////////////////
         #// Decisão
@@ -170,7 +169,7 @@ class Montador:
             endr_linha.absoluto(op)
 
         elif ORIGEM_RELOCAVEL == instru:
-            endr_linha._relocavel(op)
+            endr_linha.relocavel(op)
 
         elif FIM == instru:
             pass
@@ -186,12 +185,12 @@ class Montador:
             pass
 
         elif OVERLAY == instru:
-            register_overlay = True
-            overlay_n = op
-            tabela['overlay'][overlay_n] = {'meta':[], 'listagem':[]} # Cria fila de listagem do overlay_n
+            self.register_overlay = True
+            self.overlay_n = op
+            tabela['overlay'][self.overlay_n] = {'meta':[], 'listagem':[]} # Cria fila de listagem do overlay_n
 
         elif OVERLAYEND == instru:
-            register_overlay = False
+            self.register_overlay = False
 
         else:
             # Trata instruções não pseudo
@@ -205,8 +204,8 @@ class Montador:
 
         #//////////////////////////////
         #// Registro de listagem
-        if register_overlay: # Separa o overlay do resto do código
-            tabela['overlay'][overlay_n]['listagem'].append( string_linha )
+        if self.register_overlay: # Separa o overlay do resto do código
+            tabela['overlay'][self.overlay_n]['listagem'].append( string_linha )
 
         elif register_line:
             endr_end_linha = endr_linha.value + size_linha - 1
@@ -226,7 +225,7 @@ class Montador:
         size_linha = 0
 
         # Overlays
-        register_overlay = False
+        self.register_overlay = False
         overlay_endr_linha = Endr()
         overlay_n = 0
 
@@ -239,7 +238,7 @@ class Montador:
         tabela = {'simbolos':tabela_simbolos, 'ext':tabela_ext, 'ent':tabela_ent, 'overlay': overlay_table}
 
         for string_linha in codigo:
-            next_endr_linha, found_overlay  = self.analisar_linha1(string_linha,\
+            next_endr_linha = self.analisar_linha1(string_linha,\
                                                     endr_linha, fila_listagem, tabela)
 
             if next_endr_linha == False:
@@ -257,7 +256,7 @@ class Montador:
         # 	00 0a 0xxx bb
         # 	01 0a 0xxx bbbbbb
         size = endr_end - endr
-        tipo = 0 if size == 1 else 1
+        tipo = 0 if size == 0 else 1
         nibble_rel = 2*endr_rel + op_rel
         if tipo == 0:
             return [tipo, nibble_rel, endr, op]
