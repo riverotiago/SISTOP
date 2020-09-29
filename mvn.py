@@ -30,6 +30,9 @@ class Simulador():
             0xC:self.HM, 0xD:self.GD, 0xE:self.PD, 0xF:self.OS, 0x13:self.CP, 0x14:self.JPE,
             0x15:self.JPNE
         }
+        #/////////////////
+        #// Sistema operacional
+        self.sistop = None
 
         #/////////////////
         #// Registers
@@ -48,7 +51,6 @@ class Simulador():
         self.buffer_CI = 0
 
         self.load_loader()
-
 
     #=====================
     # Utils
@@ -127,8 +129,11 @@ class Simulador():
 
     def SC(self,op): #op = 12 bits
         """ Subroutine Call """
-        self.storeWord(op,self.CI+2)
-        self.updateCI(op+2)
+        val = self.CI+3
+        self.storeByte(op, 0)
+        self.storeByte(op+1, val >> 8)
+        self.storeByte(op+2, val & 0xFF)
+        self.updateCI(op+3)
 
     def RS(self,op): #op = 12 bits
         """ Return Subroutine """
@@ -152,9 +157,18 @@ class Simulador():
         print("OS", op)
         if op == 1:
             self.load_constant()
+            self.updateCI()
         elif op == 2:
             self.load_instruction()
-        self.updateCI()
+            self.updateCI()
+        elif op == 3:
+            # Chama monitor de overlay
+            # Lê os prox 2 bytes
+            action = self.readByte(self.CI + 1)
+            overlay_n = self.readByte(self.CI + 2)
+            print(action, overlay_n)
+            self.sistop.monitor_de_overlay(action, overlay_n)
+            self.updateCI(self.CI + 3)
 
     def CP(self, op):
         if self.AC == op:
@@ -253,8 +267,9 @@ class Simulador():
         self.buffer_CI = 0
         self.buffer_len = len(f)
 
-    def load(self, filepath):
-        self.CI = 0x10
+    def load(self, filepath): 
+        """ Carrega um código .hex na memória principal. """
+        self.CI = 0x10 #Ponteiro para o programa do loader
         self.load_buffer(filepath)
 
         print("STARTED LOADING")
@@ -263,9 +278,10 @@ class Simulador():
         while self.state == 1:
             self.run_step()
 
-
     def tratar(self, instru, op):
-        self.INSTRUCOES[instru](op)
+        func = self.INSTRUCOES[instru]
+        print(f'({func.__name__} {op:04X})')
+        func(op)
 
     def dump(self, endr_ini=0, endr_end=0xFFF):
         """ Retorna o conteúdo formatado da memória RAM de endr_ini a endr_end. """
@@ -290,6 +306,7 @@ class Simulador():
         """ Carrega um arquivo na MVN e o roda. """
         self.load(filepath)
         self.state = 1
+        print(f"===============Running {filepath}")
         while self.state == 1:
             self.run_step()
 
@@ -297,11 +314,11 @@ class Simulador():
         """ Executa a instrução atual apontada por CI. """
         if self.state == 1:
             instru, op = self.getNextInstruction()
-            #print(f"RUNNING {self.CI:04X}",f'{instru:02X}', f'{op:04X}')
+            print(f"RUNNING {self.CI:04X}",f'{instru:02X}', f'{op:04X}',end=' ')
             self.tratar(instru, op)
         
 
 #print(s.MEM[:50])
 print("INICIANDO MVN")
-s = Simulador()
-s.run('print100.hex')
+#s = Simulador()
+#s.run('teste_overlay1.hex')
