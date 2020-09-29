@@ -1,0 +1,2 @@
+cls
+python sistema_operacional.py
