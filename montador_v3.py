@@ -381,8 +381,6 @@ class Montador:
                 print(ov_code_hex)
                 self.write_hex(f'overlay{n}', ov_code_hex)
 
-
-
 m = Montador()
 m.montar('loader', 'loader')
 m.montar('print100')
