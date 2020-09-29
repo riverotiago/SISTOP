@@ -4,12 +4,14 @@
 
 	@$ /200
 	JP ini
-ov1	OS /3 	; Chama monitor de overlay
+ov1	PD
+	OS /3 	; Chama monitor de overlay
 	K /1 	; Ativar
 	K /1 	; Overlay1
 	RS
 
-ov2	OS /3 	; Chama monitor de overlay
+ov2	PD
+	OS /3 	; Chama monitor de overlay
 	K /1 	; Ativar
 	K /2 	; Overlay2
 	RS
