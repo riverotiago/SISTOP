@@ -1,6 +1,6 @@
 ##############################
 #
-# LINKER-RELOCADOR
+# Simulador de Maquina de Von Neuman
 #
 ##############################
 
