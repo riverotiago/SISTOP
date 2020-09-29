@@ -246,7 +246,6 @@ class Montador:
             else:
                 endr_linha = next_endr_linha
 
-
         print(tabela_simbolos)
         return (tabela_simbolos, tabela_ent, tabela_ext, fila_listagem), overlay_table
 
@@ -355,11 +354,33 @@ class Montador:
             self.write_hex(filepath, code_hex)
 
         elif tipo == 'absoluta':
+            # Recebe p1 e overlays
             p1, overlays = self.primeiro_passo(f)
+
+            # Monta programa principal
             fila_montagem, ENDR_LIMITES = self.segundo_passo(*p1)
             code_hex = self.montagem_absoluta(fila_montagem, ENDR_LIMITES)
             print(code_hex)
             self.write_hex(filepath, code_hex)
+
+            # Monta overlays
+            for n in overlays:
+                f = overlays[n]['listagem']
+
+                # Drop first line
+                f.pop(0)
+
+                # Debug print
+                print(f"===========overlay {n}")
+                print(''.join(f))
+
+                # Monta arquivo overlay
+                ov_p1, _ = self.primeiro_passo(f)
+                ov_fila_montagem, ENDR_LIMITES = self.segundo_passo(*ov_p1)
+                ov_code_hex = self.montagem_absoluta(ov_fila_montagem, ENDR_LIMITES)
+                print(ov_code_hex)
+                self.write_hex(f'overlay{n}', ov_code_hex)
+
 
 
 m = Montador()
