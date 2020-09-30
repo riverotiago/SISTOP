@@ -6,9 +6,10 @@ class SistemaOperacional:
 
     def monitor_de_overlay(self, action, overlay_n):
         if action == 1:
-            self.mvn.load()
+            #self.mvn.load()
+            print("activate",overlay_n)
         elif action == 0:
-            pass
+            print("deactivate",overlay_n)
 
     def gerenciador_memoria(self):
         pass
