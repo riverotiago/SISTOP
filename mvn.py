@@ -164,12 +164,8 @@ class Simulador():
         elif op == 3:
             # Chama monitor de overlay
             # Lê os prox 2 bytes
-            action = self.readByte(self.CI + 3)
-            overlay_n = self.readByte(self.CI + 4)
-            print(action, overlay_n)
-            self.sistop.monitor_de_overlay(action, overlay_n)
+            self.sistop.monitor_de_overlay()
             self.updateCI(self.CI + 6)
-            print(self.dump(endr_ini=self.CI,endr_end=self.CI+6))
 
     def CP(self, op):
         if self.AC == op:
