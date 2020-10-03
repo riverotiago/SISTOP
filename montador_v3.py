@@ -155,11 +155,12 @@ class Montador:
         """ Extrai dados de uma linha de código para as tabelas e para a listagem. """
         label, instru, op, comentario = self.tokenizar(string_linha)
         if label == None and instru == None and op == None:
-            return False
+            return False,False
 
         #//////////////////////////////
         #// Declaração 
         FIRST_ENDR = 0
+        LAST_ENDR = 0
         size_linha = 0
         register_line = False
 
@@ -172,7 +173,9 @@ class Montador:
             endr_linha.relocavel(op)
 
         elif FIM == instru:
-            pass
+            FIRST_ENDR = op
+            LAST_ENDR = endr_linha.value
+            return 'fim', (FIRST_ENDR,LAST_ENDR)
 
         elif CONSTANTE == instru:
             register_line = True
@@ -213,7 +216,7 @@ class Montador:
                                 endr_linha._relocavel,label, instru, op)
             endr_linha.add(size_linha)
 
-        return endr_linha 
+        return 'endr', endr_linha
 
 
     def primeiro_passo(self, codigo):
@@ -235,19 +238,26 @@ class Montador:
         tabela_ext = {}
         tabela_ent = {}
         fila_listagem = []
-        tabela = {'simbolos':tabela_simbolos, 'ext':tabela_ext, 'ent':tabela_ent, 'overlay': overlay_table}
+        tabela = {'simbolos':tabela_simbolos,
+                  'ext':tabela_ext,
+                  'ent':tabela_ent, 
+                  'overlay': overlay_table,
+                  'meta': None}
+
+        parametros = None
 
         for string_linha in codigo:
-            next_endr_linha = self.analisar_linha1(string_linha,\
-                                                    endr_linha, fila_listagem, tabela)
+            evento, parametros = self.analisar_linha1(string_linha, endr_linha, fila_listagem, tabela)
 
-            if next_endr_linha == False:
+            if not evento:
                 continue
-            else:
-                endr_linha = next_endr_linha
+            elif evento == "endr":
+                endr_linha = parametros 
+            elif evento == "fim":
+                tabela['meta'] = parametros
 
         print(tabela_simbolos)
-        return (tabela_simbolos, tabela_ent, tabela_ext, fila_listagem), overlay_table
+        return (tabela, fila_listagem), overlay_table
 
     def criar_linha_montagem(self, endr, endr_end, endr_rel, instru, op, op_rel):
         """ Cria uma linha com os dados recebidos e acrescenta dados para a montagem. """
@@ -265,7 +275,7 @@ class Montador:
             print( tipo, nibble_rel, endr, hex((instru << 16) + op) )
             return [tipo, nibble_rel, endr, (instru << 16) + op]
 
-    def segundo_passo(self, tabela_simbolos, tabela_ent, tabela_ext, fila_listagem):
+    def segundo_passo(self, tabela, fila_listagem):
         """ Processa uma fila de listagem e cria uma fila de montagem. """
         global OP_ABS_INSTRUCOES
 
@@ -274,8 +284,7 @@ class Montador:
         fila_montagem = []
 
         # Extrair primeiro e ultimo endereço
-        FIRST_ENDR = fila_listagem[0][0]
-        LAST_ENDR = fila_listagem[-1][1]
+        FIRST_ENDR, LAST_ENDR = tabela['meta']
 
         for tokens in fila_listagem:
             # Recebe tokens
@@ -285,8 +294,8 @@ class Montador:
             endr_rel = op_rel = True
 
             # Resolve labels no operando
-            if op in tabela_simbolos:
-                op, op_rel = self.solve_label(tabela_simbolos, op)
+            if op in tabela['simbolos']:
+                op, op_rel = self.solve_label(tabela['simbolos'], op)
 
             # Resolve relocabilidade do operando
             if instru in OP_ABS_INSTRUCOES:
@@ -322,7 +331,7 @@ class Montador:
             code_hex += s
 
         FIRST_ENDR, LAST_ENDR = ENDR_LIMITES
-        code_hex += f'FF{FIRST_ENDR:04X}'
+        code_hex += f'FF{FIRST_ENDR:04X}{LAST_ENDR:04X}'
         return code_hex
 
 
