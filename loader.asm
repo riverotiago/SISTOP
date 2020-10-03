@@ -27,14 +27,8 @@ inicio  GD
 const   OS /1
         JP inicio
 
-; Escreve o primeiro endereço válido
-fim     LV /0
-        MM /0
-        GD
-        MM /1
-        GD
-        MM /2
-        HM
+; Guarda os ponteiros para inicio e final do bloco
+fim     OS /3
 
         
         
