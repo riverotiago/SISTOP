@@ -29,6 +29,8 @@ const   OS /1
 
 ; Guarda os ponteiros para inicio e final do bloco
 fim     OS /3
+        K /2
+        K /0
 
         
         
