@@ -31,6 +31,7 @@ const   OS /1
 fim     OS /3
         K /2
         K /0
+        # inicio
 
         
         
