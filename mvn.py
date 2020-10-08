@@ -27,8 +27,8 @@ class Simulador():
         self.INSTRUCOES = {
             0:self.JP, 1:self.JZ, 2:self.JN, 3:self.LV, 4:self.PLUS,
             5:self.MINUS, 6:self.MULT, 7:self.LD, 8:self.LD, 9:self.MM, 0xA:self.SC, 0xB:self.RS,
-            0xC:self.HM, 0xD:self.GD, 0xE:self.PD, 0xF:self.OS, 0x13:self.CP, 0x14:self.JPE,
-            0x15:self.JPNE
+            0xC:self.HM, 0xD:self.GD, 0xE:self.PD, 0xF:self.OS, 0x10:self.SHIFT_RIGHT, 0x11:self.SHIFT_LEFT,
+            0x13:self.CP, 0x14:self.JPE, 0x15:self.JPNE
         }
         #/////////////////
         #// Sistema operacional
@@ -154,7 +154,7 @@ class Simulador():
         self.updateCI()
 
     def OS(self, op):
-        print("OS", op)
+        #print("OS", op)
         if op == 1:
             self.load_constant()
             self.updateCI()
@@ -165,7 +165,7 @@ class Simulador():
             # Chama monitor de overlay
             # Lê os prox 2 bytes
             self.sistop.monitor_de_overlay()
-            self.updateCI(self.CI + 6)
+            self.updateCI(self.CI+6)
 
     def CP(self, op):
         if self.AC == op:
@@ -188,14 +188,26 @@ class Simulador():
         else:
             self.updateCI()
 
+    def SHIFT_RIGHT(self,op):
+        self.AC = (self.AC >> op)%256
+        self.updateCI()
+
+    def SHIFT_LEFT(self,op):
+        self.AC = (self.AC << op)%256
+        self.updateCI()
+
+
     #=====================
     # Sistema operacional
     #=====================
+    def offset(self, val):
+        self.reg_offset = val
+
     def should_relocate(self, nibble_rel):
         endr_rel = op_rel = False
-        if nibble_rel >= 2:
+        if nibble_rel >> 1:
             endr_rel = True
-        if not nibble_rel % 2:
+        if nibble_rel & 0x1:
             op_rel = True
 
         return endr_rel, op_rel
@@ -205,13 +217,14 @@ class Simulador():
         endr = self.read_buffer(4)
         instru = self.read_buffer(2)
         op = self.read_buffer(4)
-        print("load instru", instru, f'{op:04X}')
 
         endr_rel, op_rel = self.should_relocate(nibble_rel)
         if endr_rel:
             endr += self.reg_offset
         if op_rel:
             op += self.reg_offset
+
+        #print("load instru", f'{endr:04X}', endr_rel, instru, f'{op:04X}', op_rel)
 
         self.storeByte(endr, instru)
         self.storeByte(endr+1, op >> 8)
@@ -220,25 +233,14 @@ class Simulador():
     def load_constant(self):
         nibble_rel = self.read_buffer(2)
         endr = self.read_buffer(4)
+
+        endr_rel, op_rel = self.should_relocate(nibble_rel)
+        if endr_rel:
+            endr += self.reg_offset
+
         constante = self.read_buffer(2)
-        print("load const", constante)
+        #print("load const", f'{endr:04X}',constante)
         self.storeByte(endr, constante)
-
-    def monitor_de_overlay(self, n):
-        # Carrega o overlay
-        self.load(f"overlay{n}.hex")
-        # Extrai o tamanho
-        self.offset = self.extrai_tamanho()
-        # Ponteiro para o final do último bloco
-        b1 = self.readByte(2)
-        b0 = self.readByte(3)
-        # Calculo da nova posição do ponteiro
-        endr = (b1 << 8 + b0) + self.offset
-        # Guardamos a nova palavra
-        self.storeWord(2, endr)
-        # Coloca o contador de instruções para o início do loader
-        self.CI = 4
-
 
     #=====================
     # Funções 
@@ -264,7 +266,7 @@ class Simulador():
         self.buffer_CI = 0
         self.buffer_len = len(f)
 
-    def load(self, filepath): 
+    def load(self, filepath, goto=None): 
         """ Carrega um código .hex na memória principal. """
         self.CI = 0x10 #Ponteiro para o programa do loader
         self.load_buffer(filepath)
@@ -274,10 +276,15 @@ class Simulador():
 
         while self.state == 1:
             self.run_step()
+        
+        if goto:
+            self.CI = goto
+            self.state = 1
+
 
     def tratar(self, instru, op):
         func = self.INSTRUCOES[instru]
-        print(f'({func.__name__} {op:04X})')
+        #print(f'({func.__name__} {op:04X})')
         func(op)
 
     def dump(self, endr_ini=0, endr_end=0xFFF):
@@ -302,6 +309,8 @@ class Simulador():
     def run(self, filepath):
         """ Carrega um arquivo na MVN e o roda. """
         self.load(filepath)
+        # Aponta para o endereço inicial
+        self.CI = self.sistop.get_ini_pointer()
         self.state = 1
         print(f"===============Running {filepath}")
         while self.state == 1:
@@ -311,7 +320,7 @@ class Simulador():
         """ Executa a instrução atual apontada por CI. """
         if self.state == 1:
             instru, op = self.getNextInstruction()
-            print(f"RUNNING {self.CI:04X}",f'{instru:02X}', f'{op:04X}',end=' ')
+            #print(f"RUNNING {self.CI:04X}",f'{instru:02X}', f'{op:04X}',end=' ')
             self.tratar(instru, op)
         
 
