@@ -13,7 +13,7 @@ INSTRUCOES = {
     "MM":9, "SC":0xA, "RS":0xB, "HM":0xC, "GD":0xD, "PD":0xE, "OS":0xF,
     ">>":0x10,"<<":0x11,"&&":0x12, "CP":0x13, "JPE":0x14, "JPNE": 0x15
 }
-OP_ABS_INSTRUCOES = ["LV", "K", "OS", "CP", ">>", "<<", "&&"]
+OP_ABS_INSTRUCOES = ["LV", "JP", "K", "OS", "CP", ">>", "<<", "&&"]
 LISTA_INSTRUCOES = INSTRUCOES.keys()
 
 # Pseudo-instruções
@@ -172,8 +172,10 @@ class Montador:
         elif ORIGEM_RELOCAVEL == instru:
             endr_linha.relocavel(op)
 
-        elif FIM == instru:
+        elif FIM == instru and not self.register_overlay:
             FIRST_ENDR = op
+            if not isinstance(op, int):
+                FIRST_ENDR,_ = self.solve_label(tabela['simbolos'], op)
             LAST_ENDR = endr_linha.value
             return 'fim', (FIRST_ENDR,LAST_ENDR)
 
@@ -254,6 +256,7 @@ class Montador:
             elif evento == "endr":
                 endr_linha = parametros 
             elif evento == "fim":
+                print("fim", parametros)
                 tabela['meta'] = parametros
 
         print(tabela_simbolos)
@@ -291,8 +294,7 @@ class Montador:
             print(tokens, end=' -> ')
             endr, endr_end, endr_rel, label, instru, op = tokens
 
-            endr_rel = op_rel = True
-
+            op_rel = True
             # Resolve labels no operando
             if op in tabela['simbolos']:
                 op, op_rel = self.solve_label(tabela['simbolos'], op)
