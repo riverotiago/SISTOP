@@ -1,4 +1,5 @@
 from mvn import Simulador
+
 class SistemaOperacional:
     def __init__(self, mvn):
         self.mvn = mvn
@@ -9,6 +10,7 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Paginas 
+        self.pages = []
 
         # Processos
 
