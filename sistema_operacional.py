@@ -10,7 +10,7 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Paginas 
-        self.pages = []
+        self.pages = {}
 
         # Processos
 
