@@ -4,8 +4,13 @@ class SistemaOperacional:
         self.mvn = mvn
         self.mvn.sistop = self
 
+        # Overlays
         self.overlay_table = {'root':[0,0,[]]}
         self.current_overlay = 'root'
+
+        # Paginas 
+
+        # Processos
 
     #=====================
     # Monitor de overlay
@@ -56,10 +61,18 @@ class SistemaOperacional:
             self.remove_overlay()
             self.mvn.updateCI( self.mvn.CI - 1 )
 
+    #=====================
+    # Memória Paginada
+    #=====================
+
     def gerenciador_memoria(self):
         pass
 
-    def gerenciador_processo(self):
+    #=====================
+    # Administrador de Processos
+    #=====================
+
+    def processos(self):
         pass
 
 mvn = Simulador()
