@@ -82,6 +82,7 @@ class SistemaOperacional:
     #=====================
 
     def run(self):
+        pass
 
 mvn = Simulador()
 so = SistemaOperacional(mvn)
