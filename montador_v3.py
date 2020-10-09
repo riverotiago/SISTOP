@@ -227,12 +227,9 @@ class Montador:
         """
         print("/"*50,f"\n// Primeiro passo\n")
         endr_linha = Endr()
-        size_linha = 0
 
         # Overlays
         self.register_overlay = False
-        overlay_endr_linha = Endr()
-        overlay_n = 0
 
         # Tabelas
         overlay_table = {}
@@ -335,7 +332,6 @@ class Montador:
         FIRST_ENDR, LAST_ENDR = ENDR_LIMITES
         code_hex += f'FF{FIRST_ENDR:04X}{LAST_ENDR:04X}'
         return code_hex
-
 
     def montagem_relocavel(self):
         """ Cria um arquivo .robj carregável pelo linker. """
