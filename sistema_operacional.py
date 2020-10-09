@@ -10,7 +10,7 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Paginas 
-        self.pages = {}
+        self.inicializar_paginas()
 
         # Processos
 
@@ -67,7 +67,7 @@ class SistemaOperacional:
     # Memória Paginada
     #=====================
 
-    def gerenciador_memoria(self):
+    def inicializar_paginas(self):
         pass
 
     #=====================
@@ -76,6 +76,12 @@ class SistemaOperacional:
 
     def processos(self):
         pass
+
+    #=====================
+    # Executar código
+    #=====================
+
+    def run(self):
 
 mvn = Simulador()
 so = SistemaOperacional(mvn)

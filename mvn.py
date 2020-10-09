@@ -10,6 +10,7 @@ from motordeeventos import MotorDeEventos, Evento
 # CONSTANTES
 #================
 MEM_SIZE = 4096 # Bytes
+HD_SIZE = 16*1024*1024 # = 16 MB
 MEM_POS_SIZE = 1 # Bytes
 WORD_SIZE = 1 # Bytes
 MAX_BITS = 2**(WORD_SIZE*8)
@@ -24,6 +25,7 @@ class Simulador():
         self.AC = 0
         self.state = 0
         self.MEM = bytearray(MEM_SIZE)
+        self.HD = bytearray(HD_SIZE)
         self.INSTRUCOES = {
             0:self.JP, 1:self.JZ, 2:self.JN, 3:self.LV, 4:self.PLUS,
             5:self.MINUS, 6:self.MULT, 7:self.LD, 8:self.LD, 9:self.MM, 0xA:self.SC, 0xB:self.RS,
@@ -242,8 +244,14 @@ class Simulador():
         #print("load const", f'{endr:04X}',constante)
         self.storeByte(endr, constante)
 
+    def read_memory(self, endr):
+        pass
+
+    def write_memory(self, endr, val):
+        pass
+
     #=====================
-    # Funções 
+    # Funções Loader
     #=====================
 
     def load_loader(self):
@@ -267,7 +275,7 @@ class Simulador():
         self.buffer_len = len(f)
 
     def load(self, filepath, goto=None): 
-        """ Carrega um código .hex na memória principal. """
+        """ Carrega um código .hex na memória física. """
         self.CI = 0x10 #Ponteiro para o programa do loader
         self.load_buffer(filepath)
 
@@ -281,12 +289,41 @@ class Simulador():
             self.CI = goto
             self.state = 1
 
+    #===========================
+    # Funções execução
+    #===========================
 
     def tratar(self, instru, op):
         func = self.INSTRUCOES[instru]
         #print(f'({func.__name__} {op:04X})')
         func(op)
 
+    def getNextInstruction(self):
+        """ Faz um desassembly da instrução apontada por CI. """
+        instru = self.MEM[self.CI]
+        op = (self.MEM[self.CI+1] << 8) + self.MEM[self.CI+2]
+        return instru, op
+
+    def run_step(self):
+        """ Executa a instrução atual apontada por CI. """
+        if self.state == 1:
+            instru, op = self.getNextInstruction()
+            #print(f"RUNNING {self.CI:04X}",f'{instru:02X}', f'{op:04X}',end=' ')
+            self.tratar(instru, op)
+
+    def run(self, filepath):
+        """ Carrega um arquivo na MVN e o roda. """
+        self.load(filepath)
+        # Aponta para o endereço inicial
+        self.CI = self.sistop.get_ini_pointer()
+        self.state = 1
+        print(f"===============Running {filepath}")
+        while self.state == 1:
+            self.run_step()
+
+    #======================= 
+    # Funções Utils
+    #======================= 
     def dump(self, endr_ini=0, endr_end=0xFFF):
         """ Retorna o conteúdo formatado da memória RAM de endr_ini a endr_end. """
         print_ini = endr_ini&0xFF0
@@ -300,28 +337,6 @@ class Simulador():
             print_string += '\n'
         return print_string
 
-    def getNextInstruction(self):
-        """ Faz um desassembly da instrução apontada por CI. """
-        instru = self.MEM[self.CI]
-        op = (self.MEM[self.CI+1] << 8) + self.MEM[self.CI+2]
-        return instru, op
-
-    def run(self, filepath):
-        """ Carrega um arquivo na MVN e o roda. """
-        self.load(filepath)
-        # Aponta para o endereço inicial
-        self.CI = self.sistop.get_ini_pointer()
-        self.state = 1
-        print(f"===============Running {filepath}")
-        while self.state == 1:
-            self.run_step()
-
-    def run_step(self):
-        """ Executa a instrução atual apontada por CI. """
-        if self.state == 1:
-            instru, op = self.getNextInstruction()
-            #print(f"RUNNING {self.CI:04X}",f'{instru:02X}', f'{op:04X}',end=' ')
-            self.tratar(instru, op)
         
 
 #print(s.MEM[:50])
