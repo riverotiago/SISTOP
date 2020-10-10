@@ -1,4 +1,5 @@
 from mvn import Simulador
+from os_classes.process_management import ProcessTable
 
 class SistemaOperacional:
     def __init__(self, mvn):
@@ -10,7 +11,7 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Paginas 
-        self.inicializar_paginas()
+        self.initialize_pages()
 
         # Processos
 
@@ -66,15 +67,19 @@ class SistemaOperacional:
     #=====================
     # Memória Paginada
     #=====================
+    def page_swap(self):
+        pass
 
-    def inicializar_paginas(self):
+    def initialize_pages(self):
         pass
 
     #=====================
     # Administrador de Processos
     #=====================
+    def new_processID(self):
+        return 0
 
-    def processos(self):
+    def create_process(self):
         pass
 
     #=====================
