@@ -71,7 +71,9 @@ class SistemaOperacional:
         pass
 
     def initialize_pages(self):
-        pass
+        n_pages = 8
+        page_size = 65536
+        self.pages = [ {} for i in range(n_pages) ]
 
     #=====================
     # Administrador de Processos
