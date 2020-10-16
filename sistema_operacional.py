@@ -49,6 +49,7 @@ class SistemaOperacional:
             ENDR_INI = self.mvn.read_buffer(4)
             ENDR_END = self.mvn.read_buffer(4)
             self.set_overlay_pointers(ENDR_INI, ENDR_END)
+
             #print("set pointers", ENDR_INI, ENDR_END,self.overlay_table)
 
         elif action == 1:

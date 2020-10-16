@@ -296,6 +296,8 @@ class Simulador():
     def tratar(self, instru, op):
         func = self.INSTRUCOES[instru]
         #print(f'({func.__name__} {op:04X})')
+        # if instrucao.op is endr
+        #     newop = fiscal(op)
         func(op)
 
     def getNextInstruction(self):
