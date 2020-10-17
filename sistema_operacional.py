@@ -71,10 +71,14 @@ class SistemaOperacional:
     def page_swap(self):
         pass
 
+    def activate_page_table(self):
+        pass
+
     def initialize_pages(self):
         n_pages = 8
-        page_size = 65536
-        self.pages = [ {} for i in range(n_pages) ]
+        virtual_space = 65536
+        page_size = virtual_space/n_pages
+        self.pages = [ {'offset':page_size*n, 'mem':bytearray(page_size)} for n in range(n_pages) ]
 
     #=====================
     # Administrador de Processos
