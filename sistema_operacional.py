@@ -11,6 +11,7 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Paginas 
+        self.MEM_pages = {}
         self.loaded_pages = {}
         self.initialize_pages()
 
@@ -105,6 +106,10 @@ class SistemaOperacional:
 
     def create_process(self):
         pass
+
+    #=====================
+    # Multiprogramação
+    #=====================
 
     #=====================
     # Executar código
