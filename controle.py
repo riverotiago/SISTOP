@@ -1,7 +1,7 @@
 from motordeeventos import MotorDeEventos, Evento
 from interpretador import Interpretador
 from linguagem import Linguagem
-from montador import Montador
+from montador_v3 import Montador
 from simulador import Simulador
 import sys
 import os
