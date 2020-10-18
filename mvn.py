@@ -10,7 +10,7 @@ from motordeeventos import MotorDeEventos, Evento
 # CONSTANTES
 #================
 MEM_SIZE = 4096 # Bytes
-HD_SIZE = 2**16 # = 65536 Bytes
+HD_SIZE = 2**20 # 1 GB (1.048.576 Bytes)
 MEM_POS_SIZE = 1 # Bytes
 WORD_SIZE = 1 # Bytes
 MAX_BITS = 2**(WORD_SIZE*8)
