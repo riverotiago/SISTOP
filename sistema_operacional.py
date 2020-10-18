@@ -11,9 +11,11 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Paginas 
+        self.loaded_pages = {}
         self.initialize_pages()
 
         # Processos
+        self.PCB = {}
 
     #=====================
     # Monitor de overlay
@@ -49,7 +51,7 @@ class SistemaOperacional:
             ENDR_INI = self.mvn.read_buffer(4)
             ENDR_END = self.mvn.read_buffer(4)
             self.set_overlay_pointers(ENDR_INI, ENDR_END)
-
+            return ENDR_INI, ENDR_END
             #print("set pointers", ENDR_INI, ENDR_END,self.overlay_table)
 
         elif action == 1:
@@ -71,6 +73,9 @@ class SistemaOperacional:
     def page_swap(self):
         pass
 
+    def in_mainmemory(self, processid, page):
+        pass
+
     def activate_page_table(self):
         pass
 
@@ -78,13 +83,25 @@ class SistemaOperacional:
         n_pages = 8
         virtual_space = 65536
         page_size = virtual_space/n_pages
-        self.pages = [ {'offset':page_size*n, 'mem':bytearray(page_size)} for n in range(n_pages) ]
+        self.pages = [ {'offset':page_size*n,
+                        'mem':bytearray(page_size),
+                        'processid':None,
+                        'protected':False } for n in range(n_pages) ]
 
     #=====================
     # Administrador de Processos
     #=====================
     def new_processID(self):
-        return 0
+        ''' Retorna o menor id de processo disponível. '''
+        ids_number = self.PCB.keys()
+        if not ids_number:
+            return 0
+
+        N = max(ids_number)
+        for k in range(N+1):
+            if not k in ids_number:
+                return k
+        return N+1
 
     def create_process(self):
         pass
