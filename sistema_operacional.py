@@ -1,5 +1,5 @@
 from mvn import Simulador
-from os_classes.process_management import ProcessTable
+from os_classes.process_management import ProcessControlBlock
 
 class SistemaOperacional:
     def __init__(self, mvn):
@@ -16,7 +16,8 @@ class SistemaOperacional:
         self.initialize_pages()
 
         # Processos
-        self.PCB = {}
+        self.ProcessList = {}
+        self.current_process = 0
 
     #=====================
     # Monitor de overlay
@@ -54,7 +55,6 @@ class SistemaOperacional:
             self.set_overlay_pointers(ENDR_INI, ENDR_END)
             return ENDR_INI, ENDR_END
             #print("set pointers", ENDR_INI, ENDR_END,self.overlay_table)
-
         elif action == 1:
             print("activate overlay ",overlay_n)
             self.mvn.offset(self.get_end_pointer())
@@ -71,50 +71,92 @@ class SistemaOperacional:
     #=====================
     # Memória Paginada
     #=====================
+    def get_empty_page(self):
+        pass
+
     def page_swap(self):
         pass
 
-    def in_mainmemory(self, processid, page):
-        pass
+    def to_page_num(self, endr):
+        ''' Calcula a página em que se localiza o endereço. '''
+        return f'{endr // self.PAGE_SIZE}'
 
-    def activate_page_table(self):
-        pass
+    def in_main_memory(self, processID, endr):
+        ''' Retorna a página se estiver na memória. '''
+        idx = f'{processID}-{self.to_page_num(endr)}'
+        try:
+            return self.loaded_pages[idx]
+        except:
+            return None
+
+    def in_storage(self, page):
+        ''' Retorna a página da memória secundária (HD). '''
+        ini = page*self.PAGE_SIZE
+        end = ini+self.PAGE_SIZE
+        return self.mvn.HD[ini:end]
+
+    def do_page_table(self, endr):
+        ''' Converte um endereço no espaço virtual para o espaço físico. '''
+        # Checa se a página do endereço está na memória principal
+        page = self.in_main_memory(self.current_process, endr)
+        if page:
+            # Se sim: aplica offset e retorna o novo endereço
+            return endr + page['offset']
+        else:
+            # Se não: busca a página na memória 
+            page_storage_num = self.ProcessList[self.current_process].get_page_storage(endr)
+            page = self.in_storage(page_storage_num)
+            # Swap com uma página vazia
+            # Se não houver pagina vazia: swap com a página seguinte
 
     def initialize_pages(self):
-        n_pages = 8
-        virtual_space = 65536
-        page_size = virtual_space/n_pages
-        self.pages = [ {'offset':page_size*n,
-                        'mem':bytearray(page_size),
+        self.VIRTUAL_SPACE = 65536
+        self.PAGE_SIZE = 256
+        self.N_PAGES = self.VIRTUAL_SPACE/self.PAGE_SIZE
+        self.pages = [ {'offset':self.PAGE_SIZE*n,
+                        'mem':bytearray(self.PAGE_SIZE),
                         'processid':None,
-                        'protected':False } for n in range(n_pages) ]
+                        'protected':False } for n in range(self.N_PAGES) ]
 
     #=====================
     # Administrador de Processos
     #=====================
     def new_processID(self):
         ''' Retorna o menor id de processo disponível. '''
-        ids_number = self.PCB.keys()
-        if not ids_number:
+        ids = self.ProcessList.keys()
+        if not ids:
             return 0
 
-        N = max(ids_number)
+        N = max(ids)
         for k in range(N+1):
-            if not k in ids_number:
+            if not k in ids:
                 return k
         return N+1
 
     def create_process(self):
-        pass
+        processID = self.new_processID()
+        self.ProcessList[processID] = ProcessControlBlock(processID)
 
     #=====================
     # Multiprogramação
     #=====================
+    def multiprog(self):
+        for id in self.ProcessList:
+            process = self.ProcessList[id]
+            # Retrieve
+            self.mvn.state = process.state
+            self.mvn.CI = process.CI
+            self.mvn.AC = process.AC
+            # Execute
+            self.mvn.run_step()
+            # Save
+            process.state = self.mvn.state 
+            process.CI = self.mvn.CI 
+            process.AC = self.mvn.AC 
 
     #=====================
     # Executar código
     #=====================
-
     def run(self):
         pass
 
