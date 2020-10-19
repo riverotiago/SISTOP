@@ -1,16 +1,10 @@
-class ProcessTable():
+class ProcessControlBlock():
     def __init__(self, id):
         self.id = id
-
-        # Todo -> Transform these into attributes
-        process_entry = {}
-        process_entry['ID'] = 0
-        process_entry['State'] = 'Ready'
-        process_entry['CI'] = 0x0000
-        process_entry['MemoryInfo'] = {}
-        process_entry['MemoryInfo']['Limits'] = {}
-
-    def new_entry(self):
-        pass
+        self.ID = 0
+        self.CI = 0
+        self.AC = 0
+        self.state = 1
+        self.MEMLIMIT = None
 
     
