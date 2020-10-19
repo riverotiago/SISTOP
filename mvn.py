@@ -32,6 +32,7 @@ class Simulador():
             0xC:self.HM, 0xD:self.GD, 0xE:self.PD, 0xF:self.OS, 0x10:self.SHIFT_RIGHT, 0x11:self.SHIFT_LEFT,
             0x13:self.CP, 0x14:self.JPE, 0x15:self.JPNE
         }
+        self.OP_ABS_INSTRUCOES = [3, 0, 0xF, 0x13, 0x10, 0x11]
         #/////////////////
         #// Sistema operacional
         self.sistop = None
@@ -295,10 +296,12 @@ class Simulador():
 
     def tratar(self, instru, op):
         func = self.INSTRUCOES[instru]
-        #print(f'({func.__name__} {op:04X})')
-        # if instrucao.op is endr
-        #     newop = fiscal(op)
-        func(op)
+
+        if instru in self.OP_ABS_INSTRUCOES:
+            newop = self.sistop.do_page_table(op)
+
+        func(newop)
+
 
     def getNextInstruction(self):
         """ Faz um desassembly da instrução apontada por CI. """
