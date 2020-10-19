@@ -25,7 +25,7 @@ class Simulador():
         self.AC = 0
         self.state = 0
         self.MEM = bytearray(MEM_SIZE)
-        self.HD = bytearray(HD_SIZE)
+        self.HD = {}
         self.INSTRUCOES = {
             0:self.JP, 1:self.JZ, 2:self.JN, 3:self.LV, 4:self.PLUS,
             5:self.MINUS, 6:self.MULT, 7:self.LD, 8:self.LD, 9:self.MM, 0xA:self.SC, 0xB:self.RS,
