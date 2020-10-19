@@ -1,4 +1,5 @@
 from mvn import Simulador
+import random
 from os_classes.process_management import ProcessControlBlock
 
 class SistemaOperacional:
@@ -115,15 +116,15 @@ class SistemaOperacional:
 
     def in_main_memory(self, processID, endr):
         ''' Retorna a página se estiver na memória física. '''
-        idx = get_page_idx(processID, endr)
+        idx = self.get_page_idx(processID, endr)
         try:
             return self.loaded_pages[idx]
         except:
             return None
 
-    def in_storage(self, processID, page_num):
+    def in_storage(self, processID, endr):
         ''' Retorna a página da memória secundária (HD). '''
-        idx = get_page_idx(processID, endr)
+        idx = self.get_page_idx(processID, endr)
         return self.mvn.HD[idx]
 
     def do_page_table(self, endr):
@@ -147,9 +148,11 @@ class SistemaOperacional:
                 # Swap com uma página vazia
                 self.page_swap(storage_idx, empty_page_num)
             else:
-                # Se não houver pagina vazia: swap com a página seguinte
+                # Se não houver pagina vazia: swap com uma página aleatória
                 idx_list = self.loaded_pages.keys()
-                self.page_swap(storage_idx, )
+                ridx = random.randint(0,len(idx_list))
+                main_idx = idx_list[ridx]
+                self.page_swap(storage_idx, main_idx)
 
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536

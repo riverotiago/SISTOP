@@ -5,9 +5,6 @@ class ProcessControlBlock():
         self.CI = 0
         self.AC = 0
         self.state = 1
-        self.MEMLIMIT = None
-        self.map = {}
 
-    def get_current_page_num(self,)
 
     
