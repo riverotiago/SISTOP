@@ -72,9 +72,12 @@ class SistemaOperacional:
     # Memória Paginada
     #=====================
     def get_empty_page(self):
-        pass
+        return 0
 
-    def page_swap(self):
+    def get_current_page(self):
+        return 0
+
+    def page_swap(self, page, to_swap_page_num):
         pass
 
     def to_page_num(self, endr):
@@ -106,8 +109,14 @@ class SistemaOperacional:
             # Se não: busca a página na memória 
             page_storage_num = self.ProcessList[self.current_process].get_page_storage(endr)
             page = self.in_storage(page_storage_num)
-            # Swap com uma página vazia
-            # Se não houver pagina vazia: swap com a página seguinte
+            empty_page_num = self.get_empty_page()
+
+            if not empty_page_num == None:
+                # Swap com uma página vazia
+                self.page_swap(page, empty_page_num)
+            else:
+                # Se não houver pagina vazia: swap com a página seguinte
+                self.page_swap(page, self.get_current_page() + 1)
 
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536
