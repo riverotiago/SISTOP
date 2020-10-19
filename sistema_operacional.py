@@ -11,9 +11,9 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Paginas 
-        self.MEM_pages = {}
         self.loaded_pages = {}
         self.initialize_pages()
+        self.empty_pages_num = set(range(len(self.mvn.MEM) // self.PAGE_SIZE))
 
         # Processos
         self.ProcessList = {}
@@ -72,16 +72,23 @@ class SistemaOperacional:
     # Memória Paginada
     #=====================
     def get_empty_page(self):
-        return 0
+        ''' Retorna o número da primeira página vazia disponível na memória física. '''
+        return min(self.empty_pages_num)
 
     def get_current_page(self):
-        return 0
+        ''' Retorna o número da página do endereço atual na memória física. '''
+        process = self.ProcessList[self.current_process]
+        idx = f'{process.ID}-{self.to_page_num(process.CI)}'
+        num = self.loaded_pages[idx]['main_page']
+        return num
 
     def page_swap(self, page, to_swap_page_num):
-        pass
+        page['main_page'] = to_swap_page_num
+        self.loaded_pages[to_swap_page_num] = page
+        # Falta fazer loader
 
     def to_page_num(self, endr):
-        ''' Calcula a página em que se localiza o endereço. '''
+        ''' Calcula a página virtual em que se localiza o endereço. '''
         return f'{endr // self.PAGE_SIZE}'
 
     def in_main_memory(self, processID, endr):
@@ -125,7 +132,8 @@ class SistemaOperacional:
         self.pages = [ {'offset':self.PAGE_SIZE*n,
                         'mem':bytearray(self.PAGE_SIZE),
                         'processid':None,
-                        'protected':False } for n in range(self.N_PAGES) ]
+                        'protected':False,
+                        'main_page':None } for n in range(self.N_PAGES) ]
 
     #=====================
     # Administrador de Processos
