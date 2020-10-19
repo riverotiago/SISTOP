@@ -13,7 +13,7 @@ class SistemaOperacional:
         # Paginas 
         self.loaded_pages = {}
         self.initialize_pages()
-        self.empty_pages_num = set(range(len(self.mvn.MEM) // self.PAGE_SIZE))
+        self.empty_pages_num = set(range(1,len(self.mvn.MEM) // self.PAGE_SIZE))
 
         # Processos
         self.ProcessList = {}
@@ -71,6 +71,14 @@ class SistemaOperacional:
     #=====================
     # Memória Paginada
     #=====================
+    def to_page_num(self, endr):
+        ''' Calcula a página virtual em que se localiza o endereço. '''
+        return f'{endr // self.PAGE_SIZE}'
+
+    def get_page_idx(self, processID, endr):
+        ''' Retorna o index para identificação de uma página virtual de um processo. '''
+        return f'{processID}-{self.to_page_num(endr)}'
+
     def get_empty_page(self):
         ''' Retorna o número da primeira página vazia disponível na memória física. '''
         return min(self.empty_pages_num)
@@ -78,62 +86,80 @@ class SistemaOperacional:
     def get_current_page(self):
         ''' Retorna o número da página do endereço atual na memória física. '''
         process = self.ProcessList[self.current_process]
-        idx = f'{process.ID}-{self.to_page_num(process.CI)}'
-        num = self.loaded_pages[idx]['main_page']
-        return num
+        idx = self.get_page_idx(process.ID, self.mvn.CI)
+        return idx
 
-    def page_swap(self, page, to_swap_page_num):
-        page['main_page'] = to_swap_page_num
-        self.loaded_pages[to_swap_page_num] = page
-        # Falta fazer loader
-
-    def to_page_num(self, endr):
-        ''' Calcula a página virtual em que se localiza o endereço. '''
-        return f'{endr // self.PAGE_SIZE}'
+    def page_swap(self, storage_idx, main_idx):
+        ''' Troca uma página do HD (page_idx) com uma página da memória física (to_swap). '''
+        # Swap com uma pagína vazia da memória física
+        if main_idx in self.empty_pages_num:
+            # Remove o indice vazio
+            self.empty_pages_num.remove(main_idx)
+            # Recupera a pagina do storage
+            page = self.mvn.HD[storage_idx]
+            # Substitui o número da página na memória física
+            page['main_num'] = main_idx
+            self.loaded_pages[storage_idx] = page
+            # Remove a página do storage
+            del self.mvn.HD[storage_idx]
+        # Swap com uma página ocupada da memória física
+        else:
+            page_main = self.loaded_pages[main_idx]
+            page_storage = self.mvn.HD[storage_idx]
+            # Update
+            page_storage['main_num'] = page_main['main_num']
+            page_main['main_num'] = 0
+            # Troca
+            self.loaded_pages[storage_idx] = page_storage
+            self.mvn.HD[main_idx] = page_main
 
     def in_main_memory(self, processID, endr):
-        ''' Retorna a página se estiver na memória. '''
-        idx = f'{processID}-{self.to_page_num(endr)}'
+        ''' Retorna a página se estiver na memória física. '''
+        idx = get_page_idx(processID, endr)
         try:
             return self.loaded_pages[idx]
         except:
             return None
 
-    def in_storage(self, page):
+    def in_storage(self, processID, page_num):
         ''' Retorna a página da memória secundária (HD). '''
-        ini = page*self.PAGE_SIZE
-        end = ini+self.PAGE_SIZE
-        return self.mvn.HD[ini:end]
+        idx = get_page_idx(processID, endr)
+        return self.mvn.HD[idx]
 
     def do_page_table(self, endr):
         ''' Converte um endereço no espaço virtual para o espaço físico. '''
+        # Se o endereço estiver na página 0 (kernel), retorna o endereço
+        if endr < self.PAGE_SIZE:
+            return endr
+
         # Checa se a página do endereço está na memória principal
         page = self.in_main_memory(self.current_process, endr)
         if page:
             # Se sim: aplica offset e retorna o novo endereço
-            return endr + page['offset']
+            return endr + page['main_num']*self.PAGE_SIZE
         else:
             # Se não: busca a página na memória 
-            page_storage_num = self.ProcessList[self.current_process].get_page_storage(endr)
-            page = self.in_storage(page_storage_num)
+            process = self.ProcessList[self.current_process]
+            storage_idx = self.get_page_idx(process.ID, endr)
             empty_page_num = self.get_empty_page()
 
             if not empty_page_num == None:
                 # Swap com uma página vazia
-                self.page_swap(page, empty_page_num)
+                self.page_swap(storage_idx, empty_page_num)
             else:
                 # Se não houver pagina vazia: swap com a página seguinte
-                self.page_swap(page, self.get_current_page() + 1)
+                idx_list = self.loaded_pages.keys()
+                self.page_swap(storage_idx, )
 
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536
         self.PAGE_SIZE = 256
         self.N_PAGES = self.VIRTUAL_SPACE/self.PAGE_SIZE
-        self.pages = [ {'offset':self.PAGE_SIZE*n,
-                        'mem':bytearray(self.PAGE_SIZE),
+        self.pages = [ {'num':n,
+                        'main_num':0,
                         'processid':None,
                         'protected':False,
-                        'main_page':None } for n in range(self.N_PAGES) ]
+                        } for n in range(self.N_PAGES) ]
 
     #=====================
     # Administrador de Processos
