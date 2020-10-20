@@ -147,12 +147,16 @@ class SistemaOperacional:
             if not empty_page_num == None:
                 # Swap com uma página vazia
                 self.page_swap(storage_idx, empty_page_num)
+                page = self.loaded_pages[storage_idx]
+                return endr + page['main_num']*self.PAGE_SIZE
             else:
                 # Se não houver pagina vazia: swap com uma página aleatória
                 idx_list = self.loaded_pages.keys()
                 ridx = random.randint(0,len(idx_list))
                 main_idx = idx_list[ridx]
                 self.page_swap(storage_idx, main_idx)
+                page = self.loaded_pages[storage_idx]
+                return endr + page['main_num']*self.PAGE_SIZE
 
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536
@@ -182,6 +186,13 @@ class SistemaOperacional:
     def create_process(self):
         processID = self.new_processID()
         self.ProcessList[processID] = ProcessControlBlock(processID)
+
+    def destroy_process(self):
+        # Garbage collect
+       pass 
+
+
+        
 
     #=====================
     # Multiprogramação

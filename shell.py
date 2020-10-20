@@ -1,8 +1,7 @@
 import cmd, os, sys
 import main
 
-class mvn_shell(cmd.Cmd):
-    intro = "MVN shell. Type help to list commands.\n"
+class Shell(cmd.Cmd):
     prompt = '(mvn)'
     disk_path = ''
     infile_path = ''

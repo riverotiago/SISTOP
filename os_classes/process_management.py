@@ -5,6 +5,7 @@ class ProcessControlBlock():
         self.CI = 0
         self.AC = 0
         self.state = 1
+        self.pages = {}
 
 
     
