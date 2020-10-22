@@ -345,20 +345,23 @@ class Montador:
             code_hex += s
         return code_hex
 
-    def write_hex(self, filepath, code_hex):
-        with open(f'{filepath}.hex',"w+") as s:
+    def write_hex(self, fileout, code_hex):
+        with open(f'{fileout}',"w+") as s:
             s.write(code_hex)
 
-    def montar(self, filepath, tipo='absoluta'):
-        f = open(f'{filepath}.asm', "r+")
-        print(f"\n====== Montando {filepath} ======")
+    def montar(self, filein, fileout=None, tipo='absoluta'):
+        f = open(f'{filein}', "r+")
+        if not fileout:
+            out =  filein.replace('.asm','.hex') 
+            fileout = f'{ out }'
+        print(f"\n====== Montando {filein} ======")
 
         if tipo == 'loader':
             p1, overlays = self.primeiro_passo(f)
             fila_montagem, ENDR_LIMITES = self.segundo_passo(*p1)
             code_hex = self.montagem_loader(fila_montagem)
             print(code_hex)
-            self.write_hex(filepath, code_hex)
+            self.write_hex(fileout, code_hex)
 
         elif tipo == 'absoluta':
             # Recebe p1 e overlays
@@ -368,7 +371,7 @@ class Montador:
             fila_montagem, ENDR_LIMITES = self.segundo_passo(*p1)
             code_hex = self.montagem_absoluta(fila_montagem, ENDR_LIMITES)
             print(code_hex)
-            self.write_hex(filepath, code_hex)
+            self.write_hex(fileout, code_hex)
 
             # Monta overlays
             for n in overlays:
@@ -386,9 +389,9 @@ class Montador:
                 ov_fila_montagem, ENDR_LIMITES = self.segundo_passo(*ov_p1)
                 ov_code_hex = self.montagem_absoluta(ov_fila_montagem, ENDR_LIMITES)
                 print(ov_code_hex)
-                self.write_hex(f'overlay{n}', ov_code_hex)
+                self.write_hex(f'overlay{n}.hex', ov_code_hex)
 
 m = Montador()
-m.montar('loader', 'loader')
-m.montar('print100')
-m.montar('teste_overlay1')
+m.montar('loader.asm', tipo='loader')
+m.montar('print100.asm')
+m.montar('teste_overlay1.asm')

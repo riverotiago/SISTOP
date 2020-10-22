@@ -6,6 +6,8 @@ class SistemaOperacional:
     def __init__(self, mvn):
         self.mvn = mvn
         self.mvn.sistop = self
+        self.load = True
+        self.context = []
 
         # Overlays
         self.overlay_table = {'root':[0,0,[]]}
@@ -19,6 +21,24 @@ class SistemaOperacional:
         # Processos
         self.ProcessList = {}
         self.current_process = 0
+
+
+    #=====================
+    # Loader
+    #=====================
+    def load_context_save(self):
+        self.context = self.mvn.state, self.mvn.CI, self.mvn.AC
+    
+    def load_context_retrieve(self):
+        return self.context
+
+    def load_admin(self):
+        s, c, a = self.load_context_retrieve()
+        self.mvn.state = s
+        #self.mvn.CI = c
+        self.mvn.AC = a
+        if not self.load:
+            self.mvn.state = 0
 
     #=====================
     # Monitor de overlay
@@ -158,6 +178,13 @@ class SistemaOperacional:
                 page = self.loaded_pages[storage_idx]
                 return endr + page['main_num']*self.PAGE_SIZE
 
+    def create_pages(self, code):
+        pages = code
+        return pages
+
+    def allocate_pages(self, process, pages):
+        process.pages = pages
+
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536
         self.PAGE_SIZE = 256
@@ -171,6 +198,7 @@ class SistemaOperacional:
     #=====================
     # Administrador de Processos
     #=====================
+
     def new_processID(self):
         ''' Retorna o menor id de processo disponível. '''
         ids = self.ProcessList.keys()
@@ -183,17 +211,32 @@ class SistemaOperacional:
                 return k
         return N+1
 
-    def create_process(self, tipo):
+    def create_process(self, tipo, payload):
         # Cria process control block
         processID = self.new_processID()
-        self.ProcessList[processID] = ProcessControlBlock(processID, tipo)
-        
-        
+        process = ProcessControlBlock(processID, tipo)
+        self.ProcessList[processID] = process
+
+        if tipo == 0: # Código
+            code = payload
+            pages = self.create_pages(code)
+            self.allocate_pages(process, pages)
+
+        elif tipo == 1: # Dispositivo
+            parameters = payload
+            process.dispositivo(parameters)
+
 
     def destroy_process(self):
         # Garbage collect
        pass 
 
+    def load_program(self, filepath):
+        pass
+
+    #=====================
+    # Administração dispositivos
+    #=====================
 
         
 
@@ -222,4 +265,8 @@ class SistemaOperacional:
 
 mvn = Simulador()
 so = SistemaOperacional(mvn)
-so.mvn.run('teste_overlay1.hex')
+
+# Load program
+so.load_program('print100.asm')
+
+# Run

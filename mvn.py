@@ -169,6 +169,10 @@ class Simulador():
             # Lê os prox 2 bytes
             self.sistop.monitor_de_overlay()
             self.updateCI(self.CI+6)
+        elif op == 4:
+            self.sistop.load_admin()
+        elif op == 5:
+            self.sistop.load_context_save()
 
     def CP(self, op):
         if self.AC == op:

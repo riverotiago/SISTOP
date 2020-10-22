@@ -8,5 +8,8 @@ class ProcessControlBlock():
         self.tipo = tipo
         self.pages = {}
 
+    def dispositivo(self, parametros):
+        pass
+
 
     

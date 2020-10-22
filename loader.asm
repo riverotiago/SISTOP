@@ -13,25 +13,33 @@
 ;=================
 
         @$ /10
-inicio  GD
+start   OS  /5 ; Sinaliza início do loader
+loop    GD
         JN fim ; Detecta byte FF, fim do arquivo
         JZ const ; Trata constantes
 
 ; Trata instruçoes
         ; Escreve a instrução e reloca caso necessário
         OS /2 
-        JP inicio
+        JP loop
 
 ; Trata constante
         ; Escreve a constante e reloca caso necessário
 const   OS /1
-        JP inicio
+        JP loop
 
 ; Guarda os ponteiros para inicio e final do bloco
-fim     OS /3
-        K /2
+fim     GD
+        MM endr1
+        MM /5
+        GD
+        MM endr2
+        OS /4 ; Recupera o contexto anterior, e decide se o load pula para o primeiro
+              ; endereço ou volta
         K /0
-        # inicio
+endr1   K /0
+endr2   K /0
+        # start
 
         
         

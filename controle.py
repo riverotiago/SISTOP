@@ -153,7 +153,7 @@ class Controle(Interpretador):
     def func_run(self,complementos):
         nome = complementos[21][1]
         if nome == "montador":
-            self.montador.run(self.disk+self.infile,self.disk+self.outfile)
+            self.montador.montar(self.disk+self.infile,self.disk+self.outfile)
         elif nome == "ligador":
             pass
         elif nome == "simulador":
