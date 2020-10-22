@@ -150,14 +150,16 @@ class SistemaOperacional:
     def do_page_table(self, endr):
         ''' Converte um endereço no espaço virtual para o espaço físico. '''
         # Se o endereço estiver na página 0 (kernel), retorna o endereço
+        print('    -do page table')
         if endr < self.PAGE_SIZE:
+            print(f'        -return {endr}')
             return endr
 
         # Checa se a página do endereço está na memória principal
         page = self.in_main_memory(self.current_process, endr)
         if page:
             # Se sim: aplica offset e retorna o novo endereço
-            return endr + page['main_num']*self.PAGE_SIZE
+            return endr + page['main_offset']*self.PAGE_SIZE
         else:
             # Se não: busca a página na memória 
             process = self.ProcessList[self.current_process]
@@ -168,7 +170,7 @@ class SistemaOperacional:
                 # Swap com uma página vazia
                 self.page_swap(storage_idx, empty_page_num)
                 page = self.loaded_pages[storage_idx]
-                return endr + page['main_num']*self.PAGE_SIZE
+                return endr + page['main_offset']*self.PAGE_SIZE
             else:
                 # Se não houver pagina vazia: swap com uma página aleatória
                 idx_list = self.loaded_pages.keys()
@@ -176,7 +178,7 @@ class SistemaOperacional:
                 main_idx = idx_list[ridx]
                 self.page_swap(storage_idx, main_idx)
                 page = self.loaded_pages[storage_idx]
-                return endr + page['main_num']*self.PAGE_SIZE
+                return endr + page['main_offset']*self.PAGE_SIZE
 
     def create_pages(self, code):
         pages = code
@@ -188,7 +190,7 @@ class SistemaOperacional:
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536
         self.PAGE_SIZE = 256
-        self.N_PAGES = self.VIRTUAL_SPACE/self.PAGE_SIZE
+        self.N_PAGES = int(self.VIRTUAL_SPACE/self.PAGE_SIZE)
         self.pages = [ {'num':n,
                         'main_num':0,
                         'processid':None,
@@ -232,12 +234,25 @@ class SistemaOperacional:
        pass 
 
     def load_program(self, filepath):
-        pass
+        print("Loading")
+        self.mvn.load_buffer(filepath)
+        # Load program no HD
+        self.mvn.CI = 0x10
+        for _ in range(10):
+            self.mvn.state = 1
+            self.mvn.run_step()
+        # Limites
+        print(self.mvn.MEM[:10])
+        ini = self.mvn.readPointer(0x5)
+        end = self.mvn.readPointer(0x7)
+        print(ini, end)
+        l = end - ini
+        for page_num in range(l//100):
+            print(page_num)
 
     #=====================
     # Administração dispositivos
     #=====================
-
         
 
     #=====================

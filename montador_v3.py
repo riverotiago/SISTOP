@@ -324,13 +324,14 @@ class Montador:
 
     def montagem_absoluta(self, fila_montagem, ENDR_LIMITES):
         """ Cria um arquivo .hex carregável pelo loader. """
-        code_hex = ''
+        FIRST_ENDR, LAST_ENDR = ENDR_LIMITES
+        code_hex = f'{FIRST_ENDR:04X}{LAST_ENDR:04X}'
+
         for linha in fila_montagem:
             s = self.format_bytes(*linha)
             code_hex += s
 
-        FIRST_ENDR, LAST_ENDR = ENDR_LIMITES
-        code_hex += f'FF{FIRST_ENDR:04X}{LAST_ENDR:04X}'
+        code_hex += f'FF'
         return code_hex
 
     def montagem_relocavel(self):

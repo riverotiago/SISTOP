@@ -58,6 +58,9 @@ class Simulador():
     #=====================
     # Utils
     #=====================
+    def readPointer(self, endr):
+        return ( self.MEM[endr] << 8 ) + self.MEM[endr] 
+
     def readByte(self,op):
         return self.MEM[op]
 
@@ -171,8 +174,10 @@ class Simulador():
             self.updateCI(self.CI+6)
         elif op == 4:
             self.sistop.load_admin()
+            self.updateCI()
         elif op == 5:
             self.sistop.load_context_save()
+            self.updateCI()
 
     def CP(self, op):
         if self.AC == op:
@@ -299,10 +304,13 @@ class Simulador():
     #===========================
 
     def tratar(self, instru, op):
+        print("    -tratando")
         func = self.INSTRUCOES[instru]
 
         if instru in self.OP_ABS_INSTRUCOES:
             newop = self.sistop.do_page_table(op)
+        else:
+            newop = op
 
         func(newop)
 

@@ -11,9 +11,24 @@
 ; 	a    : 2*endr_rel + op_rel (relocabilidade)
 ;   bbbb : bytes a adicionar
 ;=================
-
         @$ /10
-start   OS  /5 ; Sinaliza início do loader
+start   OS  /5 
+; Sinaliza início do loader
+; Guarda o endereço da primeira e ultima instrução
+; Início
+        GD
+        MM /5
+        MM endr1
+        GD
+        MM /6
+        MM endr2
+; Final
+        GD
+        MM /7
+        GD
+        MM /8
+
+; Carrega o código do buffer à RAM
 loop    GD
         JN fim ; Detecta byte FF, fim do arquivo
         JZ const ; Trata constantes
@@ -29,13 +44,10 @@ const   OS /1
         JP loop
 
 ; Guarda os ponteiros para inicio e final do bloco
-fim     GD
-        MM endr1
-        MM /5
-        GD
-        MM endr2
-        OS /4 ; Recupera o contexto anterior, e decide se o load pula para o primeiro
+fim     OS /4 ; Recupera o contexto anterior, e decide se o load pula para o primeiro
               ; endereço ou volta
+
+; Instrução de JUMP ao endereço inicial od bloco
         K /0
 endr1   K /0
 endr2   K /0
