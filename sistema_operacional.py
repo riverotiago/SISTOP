@@ -183,9 +183,12 @@ class SistemaOperacional:
                 return k
         return N+1
 
-    def create_process(self):
+    def create_process(self, tipo):
+        # Cria process control block
         processID = self.new_processID()
-        self.ProcessList[processID] = ProcessControlBlock(processID)
+        self.ProcessList[processID] = ProcessControlBlock(processID, tipo)
+        
+        
 
     def destroy_process(self):
         # Garbage collect
