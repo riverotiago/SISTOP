@@ -12,15 +12,15 @@ class Page():
         
     def getCode(self):
         if self.isloaded:
-            return self.RAM[ram_pos:ram_pos+self.PAGE_SIZE]
+            return self.RAM[self.ram_pos:self.ram_pos+self.PAGE_SIZE]
         else:
-            return self.HD[hd_pos:hd_pos+self.PAGE_SIZE]
+            return self.HD[self.hd_pos:self.hd_pos+self.PAGE_SIZE]
 
     def getPointer(self):
         if self.isloaded:
-            return self.ram_pos * self.PAGE_SIZE
+            return self.ram_pos 
         else:
-            return self.hd_pos * self.PAGE_SIZE
+            return self.hd_pos 
 
     def setLoaded(self, offset):
         self.isloaded = True

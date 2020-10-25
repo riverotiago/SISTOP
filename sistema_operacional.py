@@ -100,21 +100,13 @@ class SistemaOperacional:
         ''' Retorna o index para identificação de uma página virtual de um processo. '''
         return f'{processID}-{self.to_page_num(endr)}'
 
-    def get_empty_page(self):
-        ''' Retorna o número da primeira página vazia disponível na memória física. '''
-        return min(self.empty_pages_num)
-
     def get_current_page(self):
         ''' Retorna o número da página do endereço atual na memória física. '''
         process = self.ProcessList[self.current_process]
         idx = self.get_page_idx(process.ID, self.mvn.CI)
         return idx
 
-    def get_any_page(self):
-        ''' Retorna uma página vazia, se não, retorna uma página usada. '''
-        if self.empty_pages_num == set():
-            pass
-
+    """
     def page_swap(self, storage_idx, main_idx):
         ''' Troca uma página do HD (page_idx) com uma página da memória física (to_swap). '''
         # Swap com uma pagína vazia da memória física
@@ -138,6 +130,7 @@ class SistemaOperacional:
             # Troca
             self.loaded_pages[storage_idx] = page_storage
             self.mvn.HD[main_idx] = page_main
+        """
 
     def in_main_memory(self, processID, endr):
         ''' Retorna a página se estiver na memória física. '''
@@ -155,7 +148,7 @@ class SistemaOperacional:
     def do_page_table(self, endr):
         ''' Converte um endereço no espaço virtual para o espaço físico. '''
         # Se o endereço estiver na página 0 (kernel), retorna o endereço
-        print('    -do page table')
+        #print('    -do page table')
         if endr < self.PAGE_SIZE:
             print(f'        -return {endr}')
             return endr
@@ -169,11 +162,11 @@ class SistemaOperacional:
             # Se não: busca a página na memória 
             process = self.ProcessList[self.current_process]
             storage_idx = self.get_page_idx(process.ID, endr)
-            empty_page_num = self.get_empty_page()
+            #empty_page_num = self.get_empty_page()
 
-            if not empty_page_num == None:
+            if not process == None: # empty virou process
                 # Swap com uma página vazia
-                self.page_swap(storage_idx, empty_page_num)
+                #self.page_swap(storage_idx, empty_page_num)
                 page = self.loaded_pages[storage_idx]
                 return endr + page['main_offset']*self.PAGE_SIZE
             else:
@@ -181,7 +174,7 @@ class SistemaOperacional:
                 idx_list = self.loaded_pages.keys()
                 ridx = random.randint(0,len(idx_list))
                 main_idx = idx_list[ridx]
-                self.page_swap(storage_idx, main_idx)
+                #self.page_swap(storage_idx, main_idx)
                 page = self.loaded_pages[storage_idx]
                 return endr + page['main_offset']*self.PAGE_SIZE
 
@@ -258,24 +251,31 @@ class SistemaOperacional:
         process = self.create_process(0, None)
 
         # Cria as páginas 
-        for page_num in range(1,npages):
+        for page_num in range(1,npages+1):
             page = self.create_page(self.mvn.MEM, self.mvn.HD, page_num, self.PAGE_SIZE)
             page.processID = process.ID
             process.pages[page_num] = page
-        print(npages)
 
         # Allocate page load space 
-        any_offset = random.randint(1,self.N_PAGES_RAM-npages+1)
-        for page_num in range(npages):
+        any_offset = random.randint(1,self.N_PAGES_RAM-npages)
+        for page_num in range(1,npages+1):
             offset = page_num + any_offset
             self.loaded_pages[offset] = process.allocate(offset, page_num)
+        
+        print(f"Resumo: {npages} páginas, {offset} offset")
 
         # Carrega na memória RAM
+        print("loading RAM")
         self.mvn.reg_offset = any_offset*self.PAGE_SIZE
+        self.mvn.state = 1
         while self.mvn.reg_loading:
-            self.mvn.state = 1
             self.mvn.run_step()
         self.mvn.reg_offset = 0
+
+        # Pointer to first instruction
+        process.CI = ini
+
+        print("finished loading RAM")
 
     #=====================
     # Administração dispositivos
@@ -288,9 +288,10 @@ class SistemaOperacional:
     def multiprog(self):
         for id in self.ProcessList:
             process = self.ProcessList[id]
+            print('multiprog',process.CI)
             # Retrieve
             self.mvn.state = process.state
-            self.mvn.CI = process.CI
+            self.mvn.CI = process.get_CI()
             self.mvn.AC = process.AC
             # Execute
             self.mvn.run_step()
@@ -303,7 +304,9 @@ class SistemaOperacional:
     # Executar código
     #=====================
     def run(self):
-        pass
+        self.mvn.state = 1
+        while self.mvn.state == 1:
+            self.multiprog()
 
 mvn = Simulador()
 so = SistemaOperacional(mvn)
@@ -311,7 +314,12 @@ so = SistemaOperacional(mvn)
 # Load program
 so.load_program('print100.hex')
 print(so.loaded_pages)
-for i in so.loaded_pages:
-    print(so.loaded_pages[i].getCode())
+for v in so.loaded_pages.values():
+    if v:
+        pointer = v.getPointer()
+        print(so.mvn.dump(pointer, pointer+0x20))
+
+print(so.ProcessList)
 
 # Run
+so.run()

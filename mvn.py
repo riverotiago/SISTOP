@@ -309,7 +309,6 @@ class Simulador():
     #===========================
 
     def tratar(self, instru, op):
-        print("    -tratando")
         func = self.INSTRUCOES[instru]
 
         if instru in self.OP_ABS_INSTRUCOES:
