@@ -1,6 +1,7 @@
 from mvn import Simulador
 import random
 from os_classes.process_management import ProcessControlBlock
+from os_classes.pages import Page
 
 class SistemaOperacional:
     def __init__(self, mvn):
@@ -14,9 +15,8 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Paginas 
-        self.loaded_pages = {}
         self.initialize_pages()
-        self.empty_pages_num = set(range(1,len(self.mvn.MEM) // self.PAGE_SIZE))
+        self.loaded_pages = {i:None for i in range(self.N_PAGES_RAM)}
 
         # Processos
         self.ProcessList = {}
@@ -27,7 +27,7 @@ class SistemaOperacional:
     # Loader
     #=====================
     def load_context_save(self):
-        self.context = self.mvn.state, self.mvn.CI, self.mvn.AC
+        self.context = [self.mvn.state, self.mvn.CI, self.mvn.AC]
     
     def load_context_retrieve(self):
         return self.context
@@ -35,7 +35,7 @@ class SistemaOperacional:
     def load_admin(self):
         s, c, a = self.load_context_retrieve()
         self.mvn.state = s
-        #self.mvn.CI = c
+        self.mvn.CI = c
         self.mvn.AC = a
         if not self.load:
             self.mvn.state = 0
@@ -110,6 +110,11 @@ class SistemaOperacional:
         idx = self.get_page_idx(process.ID, self.mvn.CI)
         return idx
 
+    def get_any_page(self):
+        ''' Retorna uma página vazia, se não, retorna uma página usada. '''
+        if self.empty_pages_num == set():
+            pass
+
     def page_swap(self, storage_idx, main_idx):
         ''' Troca uma página do HD (page_idx) com uma página da memória física (to_swap). '''
         # Swap com uma pagína vazia da memória física
@@ -180,22 +185,18 @@ class SistemaOperacional:
                 page = self.loaded_pages[storage_idx]
                 return endr + page['main_offset']*self.PAGE_SIZE
 
-    def create_pages(self, code):
-        pages = code
-        return pages
+    def create_page(self, RAM, HD, pagen, pagesize):
+        page = Page(RAM, HD, pagen, pagesize)
+        return page
 
-    def allocate_pages(self, process, pages):
-        process.pages = pages
+    def allocate_space(self, npages):
+        pass
 
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536
         self.PAGE_SIZE = 256
-        self.N_PAGES = int(self.VIRTUAL_SPACE/self.PAGE_SIZE)
-        self.pages = [ {'num':n,
-                        'main_num':0,
-                        'processid':None,
-                        'protected':False,
-                        } for n in range(self.N_PAGES) ]
+        self.N_PAGES_VIRTUAL = int(self.VIRTUAL_SPACE/self.PAGE_SIZE)
+        self.N_PAGES_RAM = int(4096/self.PAGE_SIZE)
 
     #=====================
     # Administrador de Processos
@@ -220,13 +221,13 @@ class SistemaOperacional:
         self.ProcessList[processID] = process
 
         if tipo == 0: # Código
-            code = payload
-            pages = self.create_pages(code)
-            self.allocate_pages(process, pages)
+            pass
 
         elif tipo == 1: # Dispositivo
             parameters = payload
             process.dispositivo(parameters)
+
+        return process
 
 
     def destroy_process(self):
@@ -236,19 +237,45 @@ class SistemaOperacional:
     def load_program(self, filepath):
         print("Loading")
         self.mvn.load_buffer(filepath)
-        # Load program no HD
+
+        # Recarrega os limites
         self.mvn.CI = 0x10
-        for _ in range(10):
+        for _ in range(11):
             self.mvn.state = 1
             self.mvn.run_step()
+
         # Limites
         print(self.mvn.MEM[:10])
         ini = self.mvn.readPointer(0x5)
         end = self.mvn.readPointer(0x7)
-        print(ini, end)
-        l = end - ini
-        for page_num in range(l//100):
-            print(page_num)
+        l = (end - ini)
+        print(f'{ini:04X} {end:04X} size:{l} bytes')
+
+        # Calcula número de páginas
+        npages = 1 + l//self.PAGE_SIZE
+
+        # Cria processo
+        process = self.create_process(0, None)
+
+        # Cria as páginas 
+        for page_num in range(1,npages):
+            page = self.create_page(self.mvn.MEM, self.mvn.HD, page_num, self.PAGE_SIZE)
+            page.processID = process.ID
+            process.pages[page_num] = page
+        print(npages)
+
+        # Allocate page load space 
+        any_offset = random.randint(1,self.N_PAGES_RAM-npages+1)
+        for page_num in range(npages):
+            offset = page_num + any_offset
+            self.loaded_pages[offset] = process.allocate(offset, page_num)
+
+        # Carrega na memória RAM
+        self.mvn.reg_offset = any_offset*self.PAGE_SIZE
+        while self.mvn.reg_loading:
+            self.mvn.state = 1
+            self.mvn.run_step()
+        self.mvn.reg_offset = 0
 
     #=====================
     # Administração dispositivos
@@ -282,6 +309,9 @@ mvn = Simulador()
 so = SistemaOperacional(mvn)
 
 # Load program
-so.load_program('print100.asm')
+so.load_program('print100.hex')
+print(so.loaded_pages)
+for i in so.loaded_pages:
+    print(so.loaded_pages[i].getCode())
 
 # Run

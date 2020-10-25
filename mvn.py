@@ -59,7 +59,7 @@ class Simulador():
     # Utils
     #=====================
     def readPointer(self, endr):
-        return ( self.MEM[endr] << 8 ) + self.MEM[endr] 
+        return ( self.MEM[endr] << 8 ) + self.MEM[endr + 1] 
 
     def readByte(self,op):
         return self.MEM[op]
@@ -174,9 +174,11 @@ class Simulador():
             self.updateCI(self.CI+6)
         elif op == 4:
             self.sistop.load_admin()
+            self.reg_loading = False
             self.updateCI()
         elif op == 5:
             self.sistop.load_context_save()
+            self.reg_loading = True
             self.updateCI()
 
     def CP(self, op):
@@ -215,7 +217,10 @@ class Simulador():
     def offset(self, val):
         self.reg_offset = val
 
-    def should_relocate(self, nibble_rel):
+    def should_relocate(self, nibble_rel, page=False):
+        if page:
+            return True, False
+
         endr_rel = op_rel = False
         if nibble_rel >> 1:
             endr_rel = True
@@ -230,7 +235,7 @@ class Simulador():
         instru = self.read_buffer(2)
         op = self.read_buffer(4)
 
-        endr_rel, op_rel = self.should_relocate(nibble_rel)
+        endr_rel, op_rel = self.should_relocate(nibble_rel, page=True)
         if endr_rel:
             endr += self.reg_offset
         if op_rel:
@@ -246,7 +251,7 @@ class Simulador():
         nibble_rel = self.read_buffer(2)
         endr = self.read_buffer(4)
 
-        endr_rel, op_rel = self.should_relocate(nibble_rel)
+        endr_rel, op_rel = self.should_relocate(nibble_rel, page=True)
         if endr_rel:
             endr += self.reg_offset
 
