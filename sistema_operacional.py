@@ -14,6 +14,7 @@ class SistemaOperacional:
         self.mvn.sistop = self
         self.load = True
         self.context = []
+        self.time = 0
 
         # Overlays
         self.overlay_table = {'root':[0,0,[]]}
@@ -27,6 +28,9 @@ class SistemaOperacional:
         # Processos
         self.ProcessList = {}
         self.current_process = 0
+
+        # Dispositivos
+        self.dispositivos = []
 
 
     #=====================
@@ -305,6 +309,20 @@ class SistemaOperacional:
     # Administração dispositivos
     #=====================
 
+    def registrar_dispositivo(self, process, tipo):
+        parametros = None
+        if tipo == 0: # Mouse
+            parametros = {'tempo_processmento':3}
+        elif tipo == 1: # Impressora 
+            parametros = {'tempo_processmento':10, 'ocupado':False}
+        elif tipo == 2: # Teclado
+            parametros = {'tempo_processmento':5}
+
+        # Coloca o dispositivo na lista de dispositivos
+        self.dispositivos.append( process.dispositivo(parametros) )
+
+    def elapsed_time(self, dispositivo):
+        return self.time - dispositivo.last()
 
     #=====================
     # Multiprogramação

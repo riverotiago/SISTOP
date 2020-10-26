@@ -8,7 +8,7 @@ class ProcessControlBlock():
         self.pages = {}
 
     def dispositivo(self, parametros):
-        pass
+        self.parametros = parametros
 
     def allocate(self, offset, page_num):
         page = self.pages[page_num]
