@@ -3,6 +3,11 @@ import random
 from os_classes.process_management import ProcessControlBlock
 from os_classes.pages import Page
 
+##
+## TODO -> Implementar: load na RAM de uma página
+## sem estar previamente no storage
+##
+
 class SistemaOperacional:
     def __init__(self, mvn):
         self.mvn = mvn
@@ -17,6 +22,7 @@ class SistemaOperacional:
         # Paginas 
         self.initialize_pages()
         self.loaded_pages = {i:None for i in range(self.N_PAGES_RAM)}
+        self.free_pages = set((i for i in range(1,self.N_PAGES_VIRTUAL)))
 
         # Processos
         self.ProcessList = {}
@@ -92,20 +98,6 @@ class SistemaOperacional:
     #=====================
     # Memória Paginada
     #=====================
-    def to_page_num(self, endr):
-        ''' Calcula a página virtual em que se localiza o endereço. '''
-        return f'{endr // self.PAGE_SIZE}'
-
-    def get_page_idx(self, processID, endr):
-        ''' Retorna o index para identificação de uma página virtual de um processo. '''
-        return f'{processID}-{self.to_page_num(endr)}'
-
-    def get_current_page(self):
-        ''' Retorna o número da página do endereço atual na memória física. '''
-        process = self.ProcessList[self.current_process]
-        idx = self.get_page_idx(process.ID, self.mvn.CI)
-        return idx
-
     """
     def page_swap(self, storage_idx, main_idx):
         ''' Troca uma página do HD (page_idx) com uma página da memória física (to_swap). '''
@@ -131,14 +123,12 @@ class SistemaOperacional:
             self.loaded_pages[storage_idx] = page_storage
             self.mvn.HD[main_idx] = page_main
         """
+    def getProcess(self, processID):
+        return self.ProcessList[processID]
 
     def in_main_memory(self, processID, endr):
         ''' Retorna a página se estiver na memória física. '''
-        idx = self.get_page_idx(processID, endr)
-        try:
-            return self.loaded_pages[idx]
-        except:
-            return None
+        process = self.getProcess(self.current_process)
 
     def in_storage(self, processID, endr):
         ''' Retorna a página da memória secundária (HD). '''
@@ -183,7 +173,41 @@ class SistemaOperacional:
         return page
 
     def allocate_space(self, npages):
-        pass
+        for page_num in range(1,npages+1):
+            offset = page_num + any_offset
+            self.loaded_pages[offset] = process.allocate(offset, page_num)
+
+    def swap(self, ram_offset=None, hd_offset=None):
+        ram_pos = ram_offset * self.PAGE_SIZE
+        hd_pos = hd_offset * self.PAGE_SIZE
+        ram = slice(ram_pos, ram_pos+self.PAGE_SIZE)
+        hd = slice(hd_pos, hd_pos+self.PAGE_SIZE)
+        self.mvn.MEM[ram], self.mvn.HD[hd] = self.mvn.HD[hd], self.mvn.MEM[ram]
+    
+    def load_page(self, process, page_num):
+        # Recupera o índice de armazenamento da pagina
+        page = process.pages[page_num]
+        hd_offset = page.hd_pos >> 8
+
+        # Se página não está no hd
+        if not page.isstored:
+            any_hd_offset = random.randint(1,self.N_PAGES_VIRTUAL-len(process.pages))
+
+
+        # Seleciona uma página aleatória para substituir
+        any_offset = random.randint(1,self.N_PAGES_RAM-len(process.pages))
+        # Se a página aleatória está carregada, swap, se não, load
+        if self.loaded_pages[any_offset]:
+            self.swap(any_offset, hd_offset)
+
+            self.loaded_pages[any_offset] = process.allocate(any_offset, page_num)
+
+            alreadyloaded = self.loaded_pages[any_offset]
+            process.deallocate(hd_offset, alreadyloaded.virtual_pos)
+            
+        else:
+            self.loaded_pages[any_offset] = process.allocate(any_offset, page_num)
+
 
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536
@@ -280,13 +304,13 @@ class SistemaOperacional:
     #=====================
     # Administração dispositivos
     #=====================
-        
+
 
     #=====================
     # Multiprogramação
     #=====================
     def multiprog(self):
-        for id in self.ProcessList:
+        for id in self.ProcessList.keys():
             process = self.ProcessList[id]
             print('multiprog',process.CI)
             # Retrieve
@@ -295,17 +319,20 @@ class SistemaOperacional:
             self.mvn.AC = process.AC
             # Execute
             self.mvn.run_step()
+            # Check for end
+            if self.mvn.state == 0:
+                del self.ProcessList[id]
             # Save
             process.state = self.mvn.state 
-            process.CI = self.mvn.CI 
+            toload = process.set_CI(self.mvn.CI)
+            self.load_page(process, toload)
             process.AC = self.mvn.AC 
 
     #=====================
     # Executar código
     #=====================
     def run(self):
-        self.mvn.state = 1
-        while self.mvn.state == 1:
+        while self.ProcessList:
             self.multiprog()
 
 mvn = Simulador()
