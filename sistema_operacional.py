@@ -128,6 +128,12 @@ class SistemaOperacional:
             self.mvn.HD[main_idx] = page_main
         """
     #===================================
+    def get_current_page(self):
+        pass
+
+    def is_page_loaded(self, endr):
+        return 0
+
     def page_store(self, storage_idx, bytes):
         """ Insere uma página na memória secundária """
         pass
@@ -142,6 +148,9 @@ class SistemaOperacional:
         """ Troca uma página da ram com a memória secundária. """
         pass
 
+    def create_page(self, *args):
+        return 0
+
     def do_page_table2(self, endr):
         if endr < self.PAGE_SIZE:
             return endr
@@ -152,8 +161,10 @@ class SistemaOperacional:
         if page_idx:
             pass
         else:
-            self.page_swap( self.get_ci(), page_idx)
+            self.page_swap( self.get_current_page(), page_idx)
 
+    def do_page_table(self, endr):
+        return endr
 
     #===================================
     """
@@ -311,6 +322,7 @@ class SistemaOperacional:
         process = self.create_process(0, None)
 
         # Cria as páginas 
+        
         for page_num in range(1,npages+1):
             page = self.create_page(self.mvn.MEM, self.mvn.HD, page_num, self.PAGE_SIZE)
             page.processID = process.ID
@@ -375,7 +387,7 @@ class SistemaOperacional:
             # Save
             process.state = self.mvn.state 
             toload = process.set_CI(self.mvn.CI)
-            self.load_page(process, toload)
+            self.page_load(process, toload)
             process.AC = self.mvn.AC 
 
     #=====================
