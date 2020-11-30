@@ -127,6 +127,37 @@ class SistemaOperacional:
             self.loaded_pages[storage_idx] = page_storage
             self.mvn.HD[main_idx] = page_main
         """
+    #===================================
+    def page_store(self, storage_idx, bytes):
+        """ Insere uma página na memória secundária """
+        pass
+
+
+    def page_load(self, ram_idx, bytes):
+        """ Insere uma página na memória ram. """
+        pass
+
+
+    def page_swap(self, ram_idx, storage_idx):
+        """ Troca uma página da ram com a memória secundária. """
+        pass
+
+    def do_page_table2(self, endr):
+        if endr < self.PAGE_SIZE:
+            return endr
+
+        # Checa se o endereço está em um página carregada
+        page_idx = self.is_page_loaded(endr)
+
+        if page_idx:
+            pass
+        else:
+            self.page_swap( self.get_ci(), page_idx)
+
+
+    #===================================
+    """
+
     def getProcess(self, processID):
         return self.ProcessList[processID]
 
@@ -212,6 +243,7 @@ class SistemaOperacional:
         else:
             self.loaded_pages[any_offset] = process.allocate(any_offset, page_num)
 
+    """
 
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536

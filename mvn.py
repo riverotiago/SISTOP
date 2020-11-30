@@ -311,6 +311,7 @@ class Simulador():
     def tratar(self, instru, op):
         func = self.INSTRUCOES[instru]
 
+        # Transforma o endereço virtual para real
         if instru in self.OP_ABS_INSTRUCOES:
             newop = self.sistop.do_page_table(op)
         else:
