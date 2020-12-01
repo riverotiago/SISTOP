@@ -20,11 +20,14 @@ class ProcessControlBlock():
         page.setStored(offset)
         return page
 
-    def get_CI(self):
-        page_num = (self.CI & 0x100) >> 8
+    def get_CI(self, endr=None):
+        if endr == None:
+            endr = self.CI
+
+        page_num = (endr & 0x100) >> 8
         offset = self.pages[page_num].ram_pos - 0x100
-        ci = offset + self.CI
-        print(hex(offset), hex(ci))
+        ci = offset + endr
+        #print(hex(offset), hex(ci))
         return ci
 
     def set_CI(self, mvn_CI):

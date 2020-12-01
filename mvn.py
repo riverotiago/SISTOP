@@ -28,11 +28,12 @@ class Simulador():
         self.HD = {}
         self.INSTRUCOES = {
             0:self.JP, 1:self.JZ, 2:self.JN, 3:self.LV, 4:self.PLUS,
-            5:self.MINUS, 6:self.MULT, 7:self.LD, 8:self.LD, 9:self.MM, 0xA:self.SC, 0xB:self.RS,
+            5:self.MINUS, 6:self.MULT, 7:self.DIV, 8:self.LD, 9:self.MM, 0xA:self.SC, 0xB:self.RS,
             0xC:self.HM, 0xD:self.GD, 0xE:self.PD, 0xF:self.OS, 0x10:self.SHIFT_RIGHT, 0x11:self.SHIFT_LEFT,
             0x13:self.CP, 0x14:self.JPE, 0x15:self.JPNE
         }
-        self.OP_ABS_INSTRUCOES = [3, 0, 0xF, 0x13, 0x10, 0x11]
+        self.REV_INSTRU = ['JP','JZ','JN','LV','+','-','*','/','LD','MM','SC','RS','HM','GD','PD','OS','>>','<<','&&','CP','JPE','JPNE']
+        self.OP_ABS_INSTRUCOES = [3, 0xF, 0x13, 0x10, 0x11]
         #/////////////////
         #// Sistema operacional
         self.sistop = None
@@ -156,7 +157,7 @@ class Simulador():
         self.updateCI()
 
     def PD(self,op):
-        print(f'{self.AC} hex:{self.AC:02X}')
+        print(f'PD {self.AC} hex:{self.AC:02X}')
         self.updateCI()
 
     def OS(self, op):
@@ -173,11 +174,11 @@ class Simulador():
             self.sistop.monitor_de_overlay()
             self.updateCI(self.CI+6)
         elif op == 4:
-            self.sistop.load_admin()
+            self.sistop.end_loader()
             self.reg_loading = False
             self.updateCI()
         elif op == 5:
-            self.sistop.load_context_save()
+            self.sistop.start_loader()
             self.reg_loading = True
             self.updateCI()
 
@@ -241,7 +242,7 @@ class Simulador():
         if op_rel:
             op += self.reg_offset
 
-        #print("load instru", f'{endr:04X}', endr_rel, instru, f'{op:04X}', op_rel)
+        print("load instru", f'{endr:04X}', endr_rel, instru, f'{op:04X}', op_rel)
 
         self.storeByte(endr, instru)
         self.storeByte(endr+1, op >> 8)
@@ -312,7 +313,7 @@ class Simulador():
         func = self.INSTRUCOES[instru]
 
         # Transforma o endereço virtual para real
-        if instru in self.OP_ABS_INSTRUCOES:
+        if not instru in self.OP_ABS_INSTRUCOES:
             newop = self.sistop.do_page_table(op)
         else:
             newop = op
@@ -330,7 +331,7 @@ class Simulador():
         """ Executa a instrução atual apontada por CI. """
         if self.state == 1:
             instru, op = self.getNextInstruction()
-            #print(f"RUNNING {self.CI:04X}",f'{instru:02X}', f'{op:04X}',end=' ')
+            print(f"RUNNING at {self.CI:04X}",f'{self.REV_INSTRU[instru]}({instru})', f'{op:04X}', f'[AC:{self.AC}]',end='\n')
             self.tratar(instru, op)
 
     def run(self, filepath):

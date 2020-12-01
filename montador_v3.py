@@ -394,5 +394,5 @@ class Montador:
 
 m = Montador()
 m.montar('loader.asm', tipo='loader')
-m.montar('print100.asm')
-m.montar('teste_overlay1.asm')
+m.montar('print10.asm')
+#m.montar('teste_overlay1.asm')
