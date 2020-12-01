@@ -118,7 +118,6 @@ class SistemaOperacional:
         """ Insere uma página na memória ram. """
         pass
 
-
     def page_swap(self, ram_idx, storage_idx):
         """ Troca uma página da ram com a memória secundária. """
         pass
@@ -128,11 +127,11 @@ class SistemaOperacional:
         return page
 
     def do_page_table(self, endr):
+        """ Realiza a conversão do endereço virtual para o endereço da memória física. """
         if endr < self.PAGE_SIZE:
             return endr
         else:
             return self.get_current_process().get_CI(endr)
-
 
     def initialize_pages(self):
         self.VIRTUAL_SPACE = 65536
@@ -173,11 +172,9 @@ class SistemaOperacional:
 
         return process
 
-
     def destroy_process(self):
         # Garbage collect
        pass 
-
 
     def load_program(self, filepath):
         print("\n\n:: Carregando programa")
