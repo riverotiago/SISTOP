@@ -10,7 +10,7 @@ from motordeeventos import MotorDeEventos, Evento
 # CONSTANTES
 #================
 MEM_SIZE = 4096 # Bytes
-HD_SIZE = 2**20 # 1 GB (1.048.576 Bytes)
+HD_SIZE = 2**15 
 MEM_POS_SIZE = 1 # Bytes
 WORD_SIZE = 1 # Bytes
 MAX_BITS = 2**(WORD_SIZE*8)
@@ -25,7 +25,7 @@ class Simulador():
         self.AC = 0
         self.state = 0
         self.MEM = bytearray(MEM_SIZE)
-        self.HD = {}
+        self.HD = bytearray(HD_SIZE)
         self.INSTRUCOES = {
             0:self.JP, 1:self.JZ, 2:self.JN, 3:self.LV, 4:self.PLUS,
             5:self.MINUS, 6:self.MULT, 7:self.DIV, 8:self.LD, 9:self.MM, 0xA:self.SC, 0xB:self.RS,
@@ -65,6 +65,9 @@ class Simulador():
     def readByte(self,op):
         return self.MEM[op]
 
+    def deleteBytes(self, endr, n):
+        self.MEM[endr:endr+n] = [0 for i in range(n)]
+
     def storeByte(self,op, b=None):
         if b == None:
             self.MEM[op] = self.AC
@@ -74,6 +77,11 @@ class Simulador():
     def storeWord(self,op, word):
         self.storeByte(op, word >> 8)
         self.storeByte(op, word & 0xFF)
+
+    def buffer_back(self, n):
+        self.buffer_CI -= n
+        b = int(self.buffer[self.buffer_CI:self.buffer_CI+n], 16)
+        return b
 
     def read_buffer(self, n):
         b = int(self.buffer[self.buffer_CI:self.buffer_CI+n], 16)
@@ -164,9 +172,11 @@ class Simulador():
         #print("OS", op)
         if op == 1:
             self.load_constant()
+            self.sistop.add_constant()
             self.updateCI()
         elif op == 2:
             self.load_instruction()
+            self.sistop.add_instruction()
             self.updateCI()
         elif op == 3:
             # Chama monitor de overlay
@@ -236,6 +246,8 @@ class Simulador():
         instru = self.read_buffer(2)
         op = self.read_buffer(4)
 
+        self.sistop.last_endr_loaded = endr
+
         endr_rel, op_rel = self.should_relocate(nibble_rel, page=True)
         if endr_rel:
             endr += self.reg_offset
@@ -251,6 +263,8 @@ class Simulador():
     def load_constant(self):
         nibble_rel = self.read_buffer(2)
         endr = self.read_buffer(4)
+
+        self.sistop.last_endr_loaded = endr
 
         endr_rel, op_rel = self.should_relocate(nibble_rel, page=True)
         if endr_rel:
