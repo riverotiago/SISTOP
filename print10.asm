@@ -10,5 +10,6 @@ loop    PD      ; Print
         - one     ; subtrai 1 de val
         JP loop
 fim     HM      ; Encerra
+        @$ /200
 one     K /1
         # ini 
