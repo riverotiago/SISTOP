@@ -78,14 +78,18 @@ class Simulador():
         self.storeByte(op, word >> 8)
         self.storeByte(op, word & 0xFF)
 
-    def buffer_back(self, n):
-        self.buffer_CI -= n
-        b = int(self.buffer[self.buffer_CI:self.buffer_CI+n], 16)
+    def peek_buffer(self, n):
+        b = self.buffer[self.buffer_CI:self.buffer_CI+n]
         return b
 
     def read_buffer(self, n):
         b = int(self.buffer[self.buffer_CI:self.buffer_CI+n], 16)
         self.buffer_CI += n
+        return b
+
+    def buffer_back(self, n):
+        self.buffer_CI -= n
+        b = int(self.buffer[self.buffer_CI:self.buffer_CI+n], 16)
         return b
 
     def updateCI(self, op=None):
@@ -271,7 +275,7 @@ class Simulador():
             endr += self.reg_offset
 
         constante = self.read_buffer(2)
-        #print("load const", f'{endr:04X}',constante)
+        print("load const", f'{endr:04X}',constante, self.peek_buffer(4))
         self.storeByte(endr, constante)
 
     def read_memory(self, endr):
@@ -345,7 +349,7 @@ class Simulador():
         """ Executa a instrução atual apontada por CI. """
         if self.state == 1:
             instru, op = self.getNextInstruction()
-            print(f"RUNNING at {self.CI:04X}",f'{self.REV_INSTRU[instru]}({instru})', f'{op:04X}', f'[AC:{self.AC}]',end='\n')
+            print(f"  RUNNING at {self.CI:04X}",f'{self.REV_INSTRU[instru]}({instru})', f'{op:04X}', f'[AC:{self.AC}]',end='\n')
             self.tratar(instru, op)
 
     def run(self, filepath):
