@@ -2,182 +2,240 @@ INICIANDO MVN
 
 
 :: Carregando programa
-:: Buffer > 010001160100010003000A010101030E000001000106130000010001091401120100010C0501150100010F000103010101120C00000000011501FF
-RUNNING at 0010 OS(15) 0005 [AC:0]
-RUNNING at 0013 GD(13) 0000 [AC:0]
-RUNNING at 0016 MM(9) 0005 [AC:1]
-RUNNING at 0019 MM(9) 004A [AC:1]
-RUNNING at 001C GD(13) 0000 [AC:1]
-RUNNING at 001F MM(9) 0006 [AC:0]
-RUNNING at 0022 MM(9) 004B [AC:0]
-RUNNING at 0025 GD(13) 0000 [AC:0]
-RUNNING at 0028 MM(9) 0007 [AC:1]
-RUNNING at 002B GD(13) 0000 [AC:1]
-RUNNING at 002E MM(9) 0008 [AC:22]
-:: 0100 0116 size:22 bytes
-:: Tamanho de <1> página.
+:: Buffer > 010002010100010003000A010101030E000001000106130000010001091401120100010C0502000100010F000103010101120C00000000020001FF
+  RUNNING at 0010 OS(15) 0005 [AC:0]
+  RUNNING at 0013 GD(13) 0000 [AC:0]
+  RUNNING at 0016 MM(9) 0005 [AC:1]
+  RUNNING at 0019 MM(9) 004A [AC:1]
+  RUNNING at 001C GD(13) 0000 [AC:1]
+  RUNNING at 001F MM(9) 0006 [AC:0]
+  RUNNING at 0022 MM(9) 004B [AC:0]
+  RUNNING at 0025 GD(13) 0000 [AC:0]
+  RUNNING at 0028 MM(9) 0007 [AC:2]
+  RUNNING at 002B GD(13) 0000 [AC:2]
+  RUNNING at 002E MM(9) 0008 [AC:1]
+:: 0100 0201 size:257 bytes
+:: Tamanho de <2> página.
 :: Processo <0> criado.
 :: Criando pagina <1>
-:: Resumo: 1 páginas, alocada a partir da particao <13>
-:: Carregando programa na RAM
-0xd00
-RUNNING at 0031 GD(13) 0000 [AC:22]
-RUNNING at 0034 JN(2) 0046 [AC:1]
-RUNNING at 0037 JZ(1) 0040 [AC:1]
-RUNNING at 003A OS(15) 0002 [AC:1]
-load instru 0D00 True 3 000A False
-RUNNING at 003D JP(0) 0031 [AC:1]
-RUNNING at 0031 GD(13) 0000 [AC:1]
-RUNNING at 0034 JN(2) 0046 [AC:1]
-RUNNING at 0037 JZ(1) 0040 [AC:1]
-RUNNING at 003A OS(15) 0002 [AC:1]
-load instru 0D03 True 14 0000 False
-RUNNING at 003D JP(0) 0031 [AC:1]
-RUNNING at 0031 GD(13) 0000 [AC:1]
-RUNNING at 0034 JN(2) 0046 [AC:1]
-RUNNING at 0037 JZ(1) 0040 [AC:1]
-RUNNING at 003A OS(15) 0002 [AC:1]
-load instru 0D06 True 19 0000 False
-RUNNING at 003D JP(0) 0031 [AC:1]
-RUNNING at 0031 GD(13) 0000 [AC:1]
-RUNNING at 0034 JN(2) 0046 [AC:1]
-RUNNING at 0037 JZ(1) 0040 [AC:1]
-RUNNING at 003A OS(15) 0002 [AC:1]
-load instru 0D09 True 20 0112 False
-RUNNING at 003D JP(0) 0031 [AC:1]
-RUNNING at 0031 GD(13) 0000 [AC:1]
-RUNNING at 0034 JN(2) 0046 [AC:1]
-RUNNING at 0037 JZ(1) 0040 [AC:1]
-RUNNING at 003A OS(15) 0002 [AC:1]
-load instru 0D0C True 5 0115 False
-RUNNING at 003D JP(0) 0031 [AC:1]
-RUNNING at 0031 GD(13) 0000 [AC:1]
-RUNNING at 0034 JN(2) 0046 [AC:1]
-RUNNING at 0037 JZ(1) 0040 [AC:1]
-RUNNING at 003A OS(15) 0002 [AC:1]
-load instru 0D0F True 0 0103 False
-RUNNING at 003D JP(0) 0031 [AC:1]
-RUNNING at 0031 GD(13) 0000 [AC:1]
-RUNNING at 0034 JN(2) 0046 [AC:1]
-RUNNING at 0037 JZ(1) 0040 [AC:1]
-RUNNING at 003A OS(15) 0002 [AC:1]
-load instru 0D12 True 12 0000 False
-RUNNING at 003D JP(0) 0031 [AC:1]
-RUNNING at 0031 GD(13) 0000 [AC:1]
-RUNNING at 0034 JN(2) 0046 [AC:0]
-RUNNING at 0037 JZ(1) 0040 [AC:0]
-RUNNING at 0040 OS(15) 0001 [AC:0]
-RUNNING at 0043 JP(0) 0031 [AC:0]
-RUNNING at 0031 GD(13) 0000 [AC:0]
-RUNNING at 0034 JN(2) 0046 [AC:255]
-RUNNING at 0046 OS(15) 0004 [AC:255]
-:: Fim do carregamento na RAM
+:: Criando pagina <2>
+:: Partição [(256, 511), (512, 513)]
+::===========
+:: Alocando pagina <1>
+:: Alocando processo <0>, página <1> na ram <8>
+True
+:: Escrevendo página em RAM <8>
+  RUNNING at 0031 GD(13) 0000 [AC:1]
+  RUNNING at 0034 JN(2) 0046 [AC:1]
+  RUNNING at 0037 JZ(1) 0040 [AC:1]
+  RUNNING at 003A OS(15) 0002 [AC:1]
+load instru 0800 True 3 000A False
+  RUNNING at 003D JP(0) 0031 [AC:1]
+  RUNNING at 0031 GD(13) 0000 [AC:1]
+  RUNNING at 0034 JN(2) 0046 [AC:1]
+  RUNNING at 0037 JZ(1) 0040 [AC:1]
+  RUNNING at 003A OS(15) 0002 [AC:1]
+load instru 0803 True 14 0000 False
+  RUNNING at 003D JP(0) 0031 [AC:1]
+  RUNNING at 0031 GD(13) 0000 [AC:1]
+  RUNNING at 0034 JN(2) 0046 [AC:1]
+  RUNNING at 0037 JZ(1) 0040 [AC:1]
+  RUNNING at 003A OS(15) 0002 [AC:1]
+load instru 0806 True 19 0000 False
+  RUNNING at 003D JP(0) 0031 [AC:1]
+  RUNNING at 0031 GD(13) 0000 [AC:1]
+  RUNNING at 0034 JN(2) 0046 [AC:1]
+  RUNNING at 0037 JZ(1) 0040 [AC:1]
+  RUNNING at 003A OS(15) 0002 [AC:1]
+load instru 0809 True 20 0112 False
+  RUNNING at 003D JP(0) 0031 [AC:1]
+  RUNNING at 0031 GD(13) 0000 [AC:1]
+  RUNNING at 0034 JN(2) 0046 [AC:1]
+  RUNNING at 0037 JZ(1) 0040 [AC:1]
+  RUNNING at 003A OS(15) 0002 [AC:1]
+load instru 080C True 5 0200 False
+  RUNNING at 003D JP(0) 0031 [AC:1]
+  RUNNING at 0031 GD(13) 0000 [AC:1]
+  RUNNING at 0034 JN(2) 0046 [AC:1]
+  RUNNING at 0037 JZ(1) 0040 [AC:1]
+  RUNNING at 003A OS(15) 0002 [AC:1]
+load instru 080F True 0 0103 False
+  RUNNING at 003D JP(0) 0031 [AC:1]
+  RUNNING at 0031 GD(13) 0000 [AC:1]
+  RUNNING at 0034 JN(2) 0046 [AC:1]
+  RUNNING at 0037 JZ(1) 0040 [AC:1]
+  RUNNING at 003A OS(15) 0002 [AC:1]
+load instru 0812 True 12 0000 False
+  RUNNING at 003D JP(0) 0031 [AC:1]
+  RUNNING at 0031 GD(13) 0000 [AC:1]
+  RUNNING at 0034 JN(2) 0046 [AC:0]
+  RUNNING at 0037 JZ(1) 0040 [AC:0]
+  RUNNING at 0040 OS(15) 0001 [AC:0]
+load const 0900 1 FF
+::: Instru sobressalente 512 1792
+:: Fim do carregamento da página
 :: DUMP:
    0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-D0 03 00 0A 0E 00 00 13 00 00 14 01 12 05 01 15 00
-D1 01 03 0C 00 00 01 00 00 00 00 00 00 00 00 00 00
+80 03 00 0A 0E 00 00 13 00 00 14 01 12 05 02 00 00
+81 01 03 0C 00 00 00 00 00 00 00 00 00 00 00 00 00
+82 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+83 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+84 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+85 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+86 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+87 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+88 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+89 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+8A 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+8B 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+8C 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+8D 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+8E 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+8F 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
+::===========
+:: Alocando pagina <2>
+:: Alocando processo <0>, página <2> na ram <7>
+True
+:: Escrevendo página em RAM <7>
+  RUNNING at 0043 JP(0) 0031 [AC:0]
+  RUNNING at 0031 GD(13) 0000 [AC:0]
+  RUNNING at 0034 JN(2) 0046 [AC:0]
+  RUNNING at 0037 JZ(1) 0040 [AC:0]
+  RUNNING at 0040 OS(15) 0001 [AC:0]
+load const 0700 1 FF
+  RUNNING at 0043 JP(0) 0031 [AC:0]
+  RUNNING at 0031 GD(13) 0000 [AC:0]
+  RUNNING at 0034 JN(2) 0046 [AC:255]
+  RUNNING at 0046 OS(15) 0004 [AC:255]
+:: Fim do carregamento da página
+:: DUMP:
+   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+70 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+71 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+73 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+74 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+75 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+76 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+77 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+78 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+79 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+7A 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+7B 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+7C 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+7D 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+7E 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+7F 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80 03 00 0A 0E 00 00 13 00 00 14 01 12 05 02 00 00
+
+:: Resumo: 2 páginas alocadas.
 ::
 
 
-{0: None, 1: None, 2: None, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None, 12: None, 13: <os_classes.pages.Page object at 0x000001E1B08CC588>, 14: None, 15: None}
-{0: <os_classes.process_management.ProcessControlBlock object at 0x000001E1B08CC688>}
-RUNNING at 0D00 LV(3) 000A [AC:0]
-RUNNING at 0D03 PD(14) 0000 [AC:10]
+Páginas carregadas
+ {0: None, 1: None, 2: None, 3: None, 4: None, 5: None, 6: None, 7: <os_classes.pages.Page object at 0x000002AED22AEC48>, 8: <os_classes.pages.Page object at 0x000002AED22AEA08>, 9: None, 10: None, 11: None, 12: None, 13: None, 14: None, 15: None, 16: None}
+Processos
+ {0: <os_classes.process_management.ProcessControlBlock object at 0x000002AED22AEB08>}
+
+  RUNNING at 0800 LV(3) 000A [AC:0]
+  RUNNING at 0803 PD(14) 0000 [AC:10]
 PD 10 hex:0A
-RUNNING at 0D06 CP(19) 0000 [AC:10]
-RUNNING at 0D09 JPE(20) 0112 [AC:10]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:10]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:9]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:9]
+  RUNNING at 0806 CP(19) 0000 [AC:10]
+  RUNNING at 0809 JPE(20) 0112 [AC:10]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:10]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:9]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:9]
 PD 9 hex:09
-RUNNING at 0D06 CP(19) 0000 [AC:9]
-RUNNING at 0D09 JPE(20) 0112 [AC:9]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:9]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:8]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:8]
+  RUNNING at 0806 CP(19) 0000 [AC:9]
+  RUNNING at 0809 JPE(20) 0112 [AC:9]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:9]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:8]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:8]
 PD 8 hex:08
-RUNNING at 0D06 CP(19) 0000 [AC:8]
-RUNNING at 0D09 JPE(20) 0112 [AC:8]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:8]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:7]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:7]
+  RUNNING at 0806 CP(19) 0000 [AC:8]
+  RUNNING at 0809 JPE(20) 0112 [AC:8]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:8]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:7]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:7]
 PD 7 hex:07
-RUNNING at 0D06 CP(19) 0000 [AC:7]
-RUNNING at 0D09 JPE(20) 0112 [AC:7]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:7]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:6]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:6]
+  RUNNING at 0806 CP(19) 0000 [AC:7]
+  RUNNING at 0809 JPE(20) 0112 [AC:7]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:7]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:6]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:6]
 PD 6 hex:06
-RUNNING at 0D06 CP(19) 0000 [AC:6]
-RUNNING at 0D09 JPE(20) 0112 [AC:6]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:6]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:5]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:5]
+  RUNNING at 0806 CP(19) 0000 [AC:6]
+  RUNNING at 0809 JPE(20) 0112 [AC:6]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:6]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:5]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:5]
 PD 5 hex:05
-RUNNING at 0D06 CP(19) 0000 [AC:5]
-RUNNING at 0D09 JPE(20) 0112 [AC:5]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:5]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:4]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:4]
+  RUNNING at 0806 CP(19) 0000 [AC:5]
+  RUNNING at 0809 JPE(20) 0112 [AC:5]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:5]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:4]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:4]
 PD 4 hex:04
-RUNNING at 0D06 CP(19) 0000 [AC:4]
-RUNNING at 0D09 JPE(20) 0112 [AC:4]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:4]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:3]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:3]
+  RUNNING at 0806 CP(19) 0000 [AC:4]
+  RUNNING at 0809 JPE(20) 0112 [AC:4]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:4]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:3]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:3]
 PD 3 hex:03
-RUNNING at 0D06 CP(19) 0000 [AC:3]
-RUNNING at 0D09 JPE(20) 0112 [AC:3]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:3]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:2]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:2]
+  RUNNING at 0806 CP(19) 0000 [AC:3]
+  RUNNING at 0809 JPE(20) 0112 [AC:3]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:3]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:2]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:2]
 PD 2 hex:02
-RUNNING at 0D06 CP(19) 0000 [AC:2]
-RUNNING at 0D09 JPE(20) 0112 [AC:2]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:2]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:1]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:1]
+  RUNNING at 0806 CP(19) 0000 [AC:2]
+  RUNNING at 0809 JPE(20) 0112 [AC:2]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:2]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:1]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:1]
 PD 1 hex:01
-RUNNING at 0D06 CP(19) 0000 [AC:1]
-RUNNING at 0D09 JPE(20) 0112 [AC:1]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D0C -(5) 0115 [AC:1]
-    Mapeamento de endereço 0115 -> 0D15
-RUNNING at 0D0F JP(0) 0103 [AC:0]
-    Mapeamento de endereço 0103 -> 0D03
-RUNNING at 0D03 PD(14) 0000 [AC:0]
+  RUNNING at 0806 CP(19) 0000 [AC:1]
+  RUNNING at 0809 JPE(20) 0112 [AC:1]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 080C -(5) 0200 [AC:1]
+    0200(virtual) -> 0700(fisico)
+  RUNNING at 080F JP(0) 0103 [AC:0]
+    0103(virtual) -> 0803(fisico)
+  RUNNING at 0803 PD(14) 0000 [AC:0]
 PD 0 hex:00
-RUNNING at 0D06 CP(19) 0000 [AC:0]
-RUNNING at 0D09 JPE(20) 0112 [AC:0]
-    Mapeamento de endereço 0112 -> 0D12
-RUNNING at 0D12 HM(12) 0000 [AC:0]
+  RUNNING at 0806 CP(19) 0000 [AC:0]
+  RUNNING at 0809 JPE(20) 0112 [AC:0]
+    0112(virtual) -> 0812(fisico)
+  RUNNING at 0812 HM(12) 0000 [AC:0]
 ----------------HALTED
 Processo <0> terminou.
+:: Garbage collector -> Processo 0
