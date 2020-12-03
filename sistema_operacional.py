@@ -25,12 +25,14 @@ class SistemaOperacional:
         self.last_bytes_loaded = 0
         self.last_endr_loaded = 0
         self.initialize_pages()
-        self.loaded_pages = {i:None for i in range(self.N_PAGES_RAM)}
+        self.loaded_pages = {i:None for i in range(self.N_PAGES_RAM+1)}
         self.stored_pages = {}
+        self.keep_pages = set()
 
         # Processos
         self.ProcessList = {}
         self.current_process = 0
+        self.garbage = []
 
         # Dispositivos
         self.dispositivos = []
@@ -116,6 +118,12 @@ class SistemaOperacional:
     #=====================
     # Memória Paginada
     #=====================
+    def randint_exclude(self, a, b, exclude):
+        r = random.randint(a,b)
+        while r in exclude:
+            r = random.randint(a,b)
+        return r
+
     def create_page(self, RAM, HD, pagen, pagesize):
         page = Page(RAM, HD, pagen, pagesize)
         return page
@@ -123,19 +131,27 @@ class SistemaOperacional:
     def partitions(self, endr_ini, endr_end):
         """ Calcula os limites de cada página. """
         p = []
-        #if endr_end - endr_ini <= self.PAGE_SIZE:
-        #    p = [(endr_ini, endr_end)]
-        #    print(f":: Partição {p}")
-        #    return p
+        if endr_end - endr_ini <= self.PAGE_SIZE:
+            p = [(endr_ini, endr_end)]
+            return p
 
         endr = endr_ini
         while endr+self.PAGE_SIZE < endr_end:
-            p.append( (endr, endr+self.PAGE_SIZE) ) 
+            p.append( (endr, endr+self.PAGE_SIZE-1) ) 
             endr += self.PAGE_SIZE
-        p.append( (p[-1][1], endr_end) )
+        p.append( (p[-1][1]+1, endr_end) )
 
         print(f":: Partição {p}")
         return p
+
+    def keep_page(self, process):
+        endr = process.CI
+        ram_idx = process.get_page(endr).ram_pos
+        self.keep_pages.add(ram_idx)
+        return ram_idx
+
+    def unkeep_page(self, ram_idx):
+        self.keep_pages.remove(ram_idx)
 
     def page_pointers(self, idx):
         return slice(idx*self.PAGE_SIZE, (idx+1)*self.PAGE_SIZE)
@@ -159,8 +175,10 @@ class SistemaOperacional:
                 return storage_idx
 
     def page_allocate(self, process, page_num):
-        ram_idx = random.randint(1,self.N_PAGES_RAM)
+        ram_idx = self.randint_exclude(1,self.N_PAGES_RAM-1, self.keep_pages)
         storage_idx = None
+
+        print(f":: Alocando processo <{process.ID}>, página <{page_num}> na ram <{ram_idx}>")
 
         # Se RAM está ocupada nessa posição, desocupa-la
         if self.loaded_pages[ram_idx]:
@@ -169,33 +187,43 @@ class SistemaOperacional:
             if storage_idx == None: pass
             # Guarda página que está ocupando a RAM na posição livre do HD
             ocup_page = self.loaded_pages[ram_idx]
-            self.get_page_process(ocup_page).deallocate(storage_idx, ocup_page.pagen)
+            self.get_page_process(ocup_page).deallocate(storage_idx, ocup_page.virtual_pos)
             # Escreve a página <page_num> na RAM
         
         self.loaded_pages[ram_idx] = process.allocate(ram_idx, page_num)
+        print(self.loaded_pages[ram_idx].isloaded)
 
         return ram_idx, storage_idx
 
-    def process_page_load(self, process):
+    def process_page_load(self, process, endr):
         """ Carrega a página do CI do processo na RAM. """
-        endr = process.CI
+        # Posições para alocação
         page_num = process.get_page_num(endr)
-        ram_idx = random.randint(1, self.N_PAGES_RAM)
+        ram_idx, storage_idx = self.page_allocate(process, page_num)
+
+        # Se houver página ocupando ram_idx, guarda ela em storage_idx
+        if storage_idx != None:
+            print(":: Garantindo carregamento")
+            self.byte_swap(ram_idx, storage_idx)
+        else:
+            print("E agora?")
+
 
     def byte_swap(self, ram_idx, storage_idx):
         """ Troca uma página da ram com a memória secundária. """
         ram_ptr = self.page_pointers(ram_idx)
-        ram_bytes = self.mvn.RAM[ram_ptr]
+        ram_bytes = self.mvn.MEM[ram_ptr]
 
         hd_ptr = self.page_pointers(storage_idx)
         hd_bytes = self.mvn.HD[hd_ptr]
 
         # SWAP bytes
-        self.mvn.RAM[ram_ptr] = hd_bytes
+        self.mvn.MEM[ram_ptr] = hd_bytes
         self.mvn.HD[hd_ptr] = ram_bytes
 
     def write_page(self, ram_idx, endr_ini, endr_end):
         """ Ativa o loader para escrever uma página de bytes na RAM. """
+        print(f":: Escrevendo página em RAM <{ram_idx}>")
 
         # Ajusta offset do load e encontra endr limite
         self.mvn.reg_offset = (ram_idx)*self.PAGE_SIZE - endr_ini
@@ -204,19 +232,34 @@ class SistemaOperacional:
         self.mvn.state = 1
         while self.mvn.reg_loading and self.last_endr_loaded < endr_end:
             self.mvn.run_step()
-        self.mvn.reg_offset = 0
 
         # Se houver instrução sobressalente, volta atrás com buffer
         if self.last_endr_loaded > endr_end:
-            self.mvn.deleteBytes(self.last_endr_loaded, self.last_bytes_loaded)
-            self.mvn.buffer_back(self.last_bytes_loaded)
+            erase = self.last_endr_loaded
+            offset = self.mvn.reg_offset
+            print("::: Instru sobressalente", erase, offset)
+            self.mvn.deleteBytes(self.last_endr_loaded + self.mvn.reg_offset, self.last_bytes_loaded)
+            self.mvn.buffer_back(self.last_bytes_loaded*2 + 8)
+
+        self.mvn.reg_offset = 0
 
     def do_page_table(self, endr):
         """ Realiza a conversão do endereço virtual para o endereço da memória física. """
         if endr < self.PAGE_SIZE:
             return endr
         else:
-            map_endr = self.get_current_process().get_CI(endr)
+            process = self.get_current_process()
+
+            # Mapeia o endereço do operando para memória física
+            map_endr = process.get_CI(endr)
+
+            # Caso o endereço não esteja, carregá-lo
+            if map_endr == None:
+                print("Não está carregado")
+                self.process_page_load(process, endr)
+
+            map_endr = process.get_CI(endr)
+
             print(f"    {endr:04X}(virtual) -> {map_endr:04X}(fisico)")
             return map_endr
 
@@ -307,6 +350,7 @@ class SistemaOperacional:
 
             # Se houver página ocupando ram_idx, guarda ela em storage_idx
             if storage_idx != None:
+                print(f":: Conflito de páginas <{ram_idx},{storage_idx}>")
                 self.byte_swap(ram_idx, storage_idx)
 
             # Com a posição de ram livre, escreve a página na ram
@@ -362,35 +406,53 @@ class SistemaOperacional:
             # Se a página não estiver carregada
             # na memória, carrega-la.
             if self.mvn.CI == None:
-                self.process_page_load(process)
+                self.process_page_load(process, process.CI)
                 self.mvn.CI = process.get_CI()
+                
+            # Mantem a página em execução fixa
+            keep_ram_idx = self.keep_page(process)
 
-            self.mvn.AC = process.AC
             # Execute
+            self.mvn.AC = process.AC
             self.mvn.run_step()
+
+            # Libera a página de estar fixa
+            self.unkeep_page(keep_ram_idx)
+
             # Check for end
             if self.mvn.state == 0:
+                self.garbage.append(id)
                 print(f"Processo <{id}> terminou. ")
+
             # Save
             process.state = self.mvn.state 
-            toload = process.set_CI(self.mvn.CI)
-            #self.page_load(process, toload)
+            process.set_CI(self, self.mvn.CI)
             process.AC = self.mvn.AC 
 
     #=====================
     # Executar código
     #=====================
     def run(self):
-        while self.ProcessList:
+        running = True
+        while running:
             self.multiprog()
+
+            # Remove processos não utilizados
+            if self.garbage:
+                while len(self.garbage) > 0:
+                    id = self.garbage.pop()
+                    print(f":: Garbage collector -> Processo {id}")
+                    del self.ProcessList[id]
+
+            running = self.ProcessList
 
 mvn = Simulador()
 so = SistemaOperacional(mvn)
 
 # Load program
 so.load_program('print10.hex')
-print(so.loaded_pages)
-print(so.ProcessList)
+print("Páginas carregadas\n",so.loaded_pages)
+print("Processos\n",so.ProcessList,"\n")
 
 # Run
 so.run()
