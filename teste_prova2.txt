@@ -1,0 +1,44 @@
+	@$ 100
+;============
+;= B1
+B1	PD
+; 2 E/S
+	GD
+	GD
+; 5 proc
+	+ 1
+	- 1
+	+ 2
+	- 2
+	+ 3
+; 1 E/S
+	PD
+	RS B1
+
+;============
+;= B2
+B2	PD
+one	K 1
+times	K 3
+B2ini	LD times
+	JZ end
+; B1
+	SC B1
+; 4 proc
+	LV 0
+	LD times
+	- one
+	MM times
+; 2 E/S
+	PD
+	PD
+	JP B2ini
+end	RS B2
+
+;============
+;= B3
+
+
+
+	
+			
