@@ -7,8 +7,11 @@ class ProcessControlBlock():
         self.tipo = tipo
         self.pages = {}
 
+    def get_page(self, endr):
+        return self.pages[self.get_page_num(endr)]
+
     def get_page_num(self, endr):
-        return (endr & 0x100) >> 8
+        return (endr & 0xF00) >> 8
 
     def dispositivo(self, parametros):
         self.parametros = parametros
@@ -30,31 +33,22 @@ class ProcessControlBlock():
         if not self.is_loaded(endr):
             return None
 
-        page_num = (endr & 0x100) >> 8
+        page_num = self.get_page_num(endr)
 
-
-        offset = self.pages[page_num].ram_pos - 0x100
-        ci = offset + endr
+        offset = self.pages[page_num].ram_pos 
+        ci = offset + (endr & 0xFF)
         return ci
 
-    def set_CI(self, mvn_CI):
-        # Acha qual o equivalente virtual
-        page_num = (self.CI & 0x100) >> 8
-        offset = self.pages[page_num].ram_pos - 0x100
-        ci = mvn_CI - offset
-        # Acha a página que ele corresponde
-        page_num2 = (ci >> 8)
-        # Se a página estiver carregada, mudar o CI
-        if self.is_loaded(ci):
-            self.CI = ci
-            return 0
-        # Se não estiver, retornar o número da página
-        # para que o sistema operacional carregue
-        else:
-            return page_num2
+    def set_CI(self, sistop, mvn_CI):
+        # Encontra a página na qual o processo se encontra
+        ram_page_num = self.get_page_num(mvn_CI)
+        ram_page = sistop.loaded_pages[ram_page_num]
+        if ram_page:
+            process_CI = (ram_page.virtual_pos << 8) + (mvn_CI & 0xFF)
+            self.CI = process_CI
 
     def is_loaded(self, endr):
-        page_num = (endr & 0x100) >> 8
+        page_num = self.get_page_num(endr)
         return self.pages[page_num].isloaded
 
 
