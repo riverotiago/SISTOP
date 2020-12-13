@@ -332,7 +332,8 @@ class Simulador():
 
         # Transforma o endereço virtual para real
         if not instru in self.OP_ABS_INSTRUCOES:
-            newop = self.sistop.do_page_table(op)
+            #newop = self.sistop.do_page_table(op)
+            newop = self.sistop.mem_acessar(op)
         else:
             newop = op
 

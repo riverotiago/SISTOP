@@ -2,6 +2,7 @@ from mvn import Simulador
 import random
 from os_classes.process_management import ProcessControlBlock
 from os_classes.pages import Page
+from os_classes.adm_memory import AdminMemoria
 
 ##
 ## TODO -> Implementar: load na RAM de uma página
@@ -28,6 +29,9 @@ class SistemaOperacional:
         self.loaded_pages = {i:None for i in range(self.N_PAGES_RAM+1)}
         self.stored_pages = {}
         self.keep_pages = set()
+
+        # Memoria
+        self.mem_admin = AdminMemoria('pagina', self.mvn, self)
 
         # Processos
         self.ProcessList = {}
@@ -114,6 +118,13 @@ class SistemaOperacional:
             print("deactivate overlay ",overlay_n)
             self.remove_overlay()
             self.mvn.updateCI( self.mvn.CI - 1 )
+
+    #=====================
+    # Memória Admin
+    #=====================
+
+    def mem_acessar(self, endr):
+        pass
 
     #=====================
     # Memória Paginada
