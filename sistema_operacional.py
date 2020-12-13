@@ -4,11 +4,6 @@ from os_classes.process_management import ProcessControlBlock
 from os_classes.pages import Page
 from os_classes.adm_memory import AdminMemoria
 
-##
-## TODO -> Implementar: load na RAM de uma página
-## sem estar previamente no storage
-##
-
 class SistemaOperacional:
     def __init__(self, mvn):
         self.mvn = mvn
@@ -21,15 +16,6 @@ class SistemaOperacional:
         self.overlay_table = {'root':[0,0,[]]}
         self.current_overlay = 'root'
 
-        # Paginas 
-        self.page_loaded_bytes = 0
-        self.last_bytes_loaded = 0
-        self.last_endr_loaded = 0
-        self.initialize_pages()
-        self.loaded_pages = {i:None for i in range(self.N_PAGES_RAM+1)}
-        self.stored_pages = {}
-        self.keep_pages = set()
-
         # Memoria
         self.mem_admin = AdminMemoria('pagina', self.mvn, self)
 
@@ -41,7 +27,6 @@ class SistemaOperacional:
         # Dispositivos
         self.dispositivos = []
 
-
     #=====================
     # Loader
     #=====================
@@ -51,24 +36,33 @@ class SistemaOperacional:
     def add_instruction(self):
         self.last_bytes_loaded = 3
 
-    def load_context_retrieve(self):
-        return self.context
-
-    def start_loader(self):
-        """ Salvar estado da MVN. """
-        self.last_bytes_loaded = 0
-
+    def save_context(self):
         self.context = [self.mvn.state, self.mvn.CI, self.mvn.AC]
 
-    def end_loader(self):
-        s, c, a = self.load_context_retrieve()
-        self.page_loaded_bytes += self.last_bytes_loaded
+    def load_context(self):
+        return self.context
 
-        self.mvn.state = s
-        self.mvn.CI = c
-        self.mvn.AC = a
-        if not self.load:
-            self.mvn.state = 0
+    def loader(self, base=0, nbytes=0):
+        ''' Carrega N bytes de um programa a partir do endereço base.
+            Retorna 1 enquanto houver programa a ser carregado,
+            Retorna 0 quando todos os bytes do programa forem carregados.
+        '''
+        buffer_left = self.mvn.extrai_tamanho()
+        info = self.mvn.peek_buffer(4)
+        next_endr = int(info, 16)
+        offset = next_endr # Garante o primeiro endereço = base
+        try:
+            # Enquanto o próximo endereço não ultrapassar o limite, ou
+            # até chegar ao Fim: carregar 1 byte no endereço + base
+            while (not nbytes) or (next_endr <= nbytes):
+                endr, b = self.mvn.read_buffer(4), self.mvn.read_buffer(2)
+                self.mvn.storyByte( base + endr - offset, b)
+
+                info = self.mvn.peek_buffer(4)
+                next_endr = base + int(info, 16) - offset
+            return 1
+        except:
+            return 0
 
     #=====================
     # Monitor de overlay
@@ -122,9 +116,9 @@ class SistemaOperacional:
     #=====================
     # Memória Admin
     #=====================
-
     def mem_acessar(self, endr):
-        pass
+        process = self.get_current_process()
+        return self.adm_memory.acessar(process, endr)
 
     #=====================
     # Memória Paginada

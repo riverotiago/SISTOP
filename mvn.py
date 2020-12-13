@@ -173,28 +173,13 @@ class Simulador():
         self.updateCI()
 
     def OS(self, op):
-        #print("OS", op)
-        if op == 1:
-            self.load_constant()
-            self.sistop.add_constant()
-            self.updateCI()
-        elif op == 2:
-            self.load_instruction()
-            self.sistop.add_instruction()
-            self.updateCI()
-        elif op == 3:
+        if op == 3:
             # Chama monitor de overlay
             # Lê os prox 2 bytes
             self.sistop.monitor_de_overlay()
             self.updateCI(self.CI+6)
-        elif op == 4:
-            self.sistop.end_loader()
-            self.reg_loading = False
-            self.updateCI()
-        elif op == 5:
-            self.sistop.start_loader()
-            self.reg_loading = True
-            self.updateCI()
+        elif op == 6:
+            self.sistop.loader()
 
     def CP(self, op):
         if self.AC == op:
@@ -225,65 +210,6 @@ class Simulador():
         self.AC = (self.AC << op)%256
         self.updateCI()
 
-
-    #=====================
-    # Sistema operacional
-    #=====================
-    def offset(self, val):
-        self.reg_offset = val
-
-    def should_relocate(self, nibble_rel, page=False):
-        if page:
-            return True, False
-
-        endr_rel = op_rel = False
-        if nibble_rel >> 1:
-            endr_rel = True
-        if nibble_rel & 0x1:
-            op_rel = True
-
-        return endr_rel, op_rel
-
-    def load_instruction(self):
-        nibble_rel = self.read_buffer(2)
-        endr = self.read_buffer(4)
-        instru = self.read_buffer(2)
-        op = self.read_buffer(4)
-
-        self.sistop.last_endr_loaded = endr
-
-        endr_rel, op_rel = self.should_relocate(nibble_rel, page=True)
-        if endr_rel:
-            endr += self.reg_offset
-        if op_rel:
-            op += self.reg_offset
-
-        print("load instru", f'{endr:04X}', endr_rel, instru, f'{op:04X}', op_rel)
-
-        self.storeByte(endr, instru)
-        self.storeByte(endr+1, op >> 8)
-        self.storeByte(endr+2, op & 0xFF)
-
-    def load_constant(self):
-        nibble_rel = self.read_buffer(2)
-        endr = self.read_buffer(4)
-
-        self.sistop.last_endr_loaded = endr
-
-        endr_rel, op_rel = self.should_relocate(nibble_rel, page=True)
-        if endr_rel:
-            endr += self.reg_offset
-
-        constante = self.read_buffer(2)
-        print("load const", f'{endr:04X}',constante, self.peek_buffer(4))
-        self.storeByte(endr, constante)
-
-    def read_memory(self, endr):
-        pass
-
-    def write_memory(self, endr, val):
-        pass
-
     #=====================
     # Funções Loader
     #=====================
@@ -300,28 +226,13 @@ class Simulador():
             i += 6
 
     def extrai_tamanho(self):
-        return len(self.buffer)
+        return self.buffer_len - self.buffer_CI
 
     def load_buffer(self, filepath):
         f = open(filepath, "r+").read().strip()
         self.buffer = f
         self.buffer_CI = 0
         self.buffer_len = len(f)
-
-    def load(self, filepath, goto=None): 
-        """ Carrega um código .hex na memória física. """
-        self.CI = 0x10 #Ponteiro para o programa do loader
-        self.load_buffer(filepath)
-
-        print("STARTED LOADING")
-        self.state = 1
-
-        while self.state == 1:
-            self.run_step()
-        
-        if goto:
-            self.CI = goto
-            self.state = 1
 
     #===========================
     # Funções execução
@@ -379,9 +290,6 @@ class Simulador():
             print_string += '\n'
         return print_string
 
-        
-
-#print(s.MEM[:50])
 print("INICIANDO MVN")
 #s = Simulador()
 #s.run('teste_overlay1.hex')
