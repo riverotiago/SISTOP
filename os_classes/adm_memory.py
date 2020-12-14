@@ -72,6 +72,8 @@ class AdminMemoria():
         ''' Cria processo na memória segundo o método de administração escolhido. '''
         if self.tipo == 'pagina':
             self.process_pages(process)
+        elif self.tipo == 'segmento':
+            self.process_segments(process)
 
     #===================
     # Private
@@ -164,8 +166,16 @@ class AdminMemoria():
     # Segmentos
     #=====================
 
-    def _carregar_segmentos(self, *args):
+    def process_segments(self, process):
+        # Cria as paginas e da load nelas
+        self._carregar_segmentos(process)
+    
+    def _carregar_segmentos(self, process):
         pass
+
+    #=====================
+    # Comuns
+    #=====================
 
     def _guardar_hd(self, ram_idx, storage_idx):
         div = self.loaded[ram_idx]
