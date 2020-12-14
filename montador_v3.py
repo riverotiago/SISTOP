@@ -24,8 +24,8 @@ FIM = "#"
 CONSTANTE = "K"
 EXTERNAL = "<"
 ENTRY = ">"
-OVERLAY = "overlay"
-OVERLAYEND = "endoverlay"
+OVERLAY = "segmento"
+OVERLAYEND = "segmentoend"
 
 # Valores
 V_HEX = "/"
@@ -73,6 +73,7 @@ class Endr:
 
 class Montador:
     def __init__(self):
+        self.segmentada = False
         pass
 
     def parseop(self, op):
@@ -149,8 +150,6 @@ class Montador:
         listagem = [endr, endr_end, endr_rel, label, instru, op]
         fila_listagem.append(listagem)
 
-    # < --- TODO --- Facilitar a extração de overlays
-    # variável register_overlay precisa estar no contexto de primeiro passo e analisar linha
     def analisar_linha1(self, string_linha, endr_linha,  fila_listagem, tabela):
         """ Extrai dados de uma linha de código para as tabelas e para a listagem. """
         label, instru, op, comentario = self.tokenizar(string_linha)
@@ -190,12 +189,15 @@ class Montador:
             pass
 
         elif OVERLAY == instru:
-            self.register_overlay = True
+            #self.register_overlay = True
+            self.segmentada = True
+            register_line = True
             self.overlay_n = op
             tabela['overlay'][self.overlay_n] = {'meta':[], 'listagem':[]} # Cria fila de listagem do overlay_n
 
         elif OVERLAYEND == instru:
-            self.register_overlay = False
+            #self.register_overlay = False
+            register_line = True
 
         else:
             # Trata instruções não pseudo
@@ -268,12 +270,20 @@ class Montador:
         tipo = 0 if size == 0 else 1
         nibble_rel = 2*endr_rel + op_rel
         if tipo == 0:
+            print("")
             return [tipo, nibble_rel, endr, op]
         else:
             op = op if op else 0
-            instru = INSTRUCOES[instru]
-            print( tipo, nibble_rel, endr, hex((instru << 16) + op) )
-            return [tipo, nibble_rel, endr, (instru << 16) + op]
+            if instru == 'segmento':
+                print("//-Segmento",op)
+                return [instru,op]
+            elif instru == 'segmentoend':
+                print("//-----")
+                return [instru,op]
+            else:
+                instru = INSTRUCOES[instru]
+                print( tipo, nibble_rel, endr, hex((instru << 16) + op) )
+                return [tipo, nibble_rel, endr, (instru << 16) + op]
 
     def segundo_passo(self, tabela, fila_listagem):
         """ Processa uma fila de listagem e cria uma fila de montagem. """
@@ -346,6 +356,19 @@ class Montador:
             code_hex += s
         return code_hex
 
+    def montagem_segmentos(self, fila_montagem):
+        """ Cria um arquivo .hex carregável pela MVN. """
+        segmentos = {}
+        seg_ptr = None
+        for linha in fila_montagem:
+            if 'segmento' in linha:
+                segmentos[linha[-1]] = ''
+                seg_ptr = linha[-1]
+            elif not 'segmentoend' in linha:
+                s = self.format_bytes(*linha,loader=True)
+                segmentos[seg_ptr] += s
+        return segmentos
+
     def write_hex(self, fileout, code_hex):
         with open(f'{fileout}',"w+") as s:
             s.write(code_hex)
@@ -357,7 +380,21 @@ class Montador:
             fileout = f'{ out }'
         print(f"\n====== Montando {filein} ======")
 
-        if tipo == 'loader':
+        if tipo == 'simples':
+            p1, overlays = self.primeiro_passo(f)
+            fila_montagem, ENDR_LIMITES = self.segundo_passo(*p1)
+            code_hex = ''
+            if self.segmentada:
+                segmentos = self.montagem_segmentos(fila_montagem)
+                for n in segmentos:
+                    code_hex = segmentos[n]
+                    self.write_hex(fileout.replace('.hex', f'_seg{n}.hex'), code_hex)
+            else:
+                code_hex = self.montagem_loader(fila_montagem)
+                print(code_hex)
+                self.write_hex(fileout, code_hex)
+
+        elif tipo == 'loader':
             p1, overlays = self.primeiro_passo(f)
             fila_montagem, ENDR_LIMITES = self.segundo_passo(*p1)
             code_hex = self.montagem_loader(fila_montagem)
@@ -382,7 +419,7 @@ class Montador:
                 f.pop(0)
 
                 # Debug print
-                print(f"===========overlay {n}")
+                print(f"===========segmento {n}")
                 print(''.join(f))
 
                 # Monta arquivo overlay
@@ -390,9 +427,10 @@ class Montador:
                 ov_fila_montagem, ENDR_LIMITES = self.segundo_passo(*ov_p1)
                 ov_code_hex = self.montagem_absoluta(ov_fila_montagem, ENDR_LIMITES)
                 print(ov_code_hex)
-                self.write_hex(f'overlay{n}.hex', ov_code_hex)
+                self.write_hex(f'{fileout.replace(".hex","")}_{n}.hex', ov_code_hex)
 
 m = Montador()
-m.montar('loader.asm', tipo='loader')
-m.montar('print10.asm', tipo='loader')
+#m.montar('loader.asm', tipo='loader')
+#m.montar('print10.asm', tipo='loader')
+m.montar('print10_v2.asm', tipo='simples')
 #m.montar('teste_overlay1.asm')
