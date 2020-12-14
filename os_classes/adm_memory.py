@@ -193,7 +193,6 @@ class AdminMemoria():
         self.stored[storage_idx] = div_ram
         self.byte_swap(ram_idx, storage_idx)
         
-
     def byte_swap(self, ram_idx, storage_idx):
         """ Troca uma página da ram com a memória secundária. """
         ram_ptr = self.page_pointers(ram_idx)
