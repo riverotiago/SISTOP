@@ -1,7 +1,9 @@
 ;===============
 ; LOADER ABSOLUTO SIMPLES
 ;===============
-        OS /6 ; Loader
+        @$ /10
+start   OS /6 
+        # start
         
         
         
