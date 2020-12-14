@@ -266,7 +266,7 @@ class Simulador():
 
     def run(self, filepath):
         """ Carrega um arquivo na MVN e o roda. """
-        self.load(filepath)
+        #self.load(filepath)
         # Aponta para o endereço inicial
         self.CI = self.sistop.get_ini_pointer()
         self.state = 1
