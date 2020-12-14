@@ -56,7 +56,12 @@ class AdminMemoria():
             if not self._esta_carregada(table, endr):
                 ram_idx = self.randint_exclude(1, self.N_PAGES_RAM-1, self.excluded)
                 storage_idx = div['base'] // self.PAGE_SIZE
-                self._guardar_ram(ram_idx, storage_idx)
+
+                # Se a posição de inserção já estiver ocupada
+                if self.loaded.get(ram_idx, None):
+                    self._guardar_swap(ram_idx, storage_idx)
+                else:
+                    self._guardar_ram(ram_idx, storage_idx)
             
             # Retorna o novo endereço
             endr_fisico = self._converter(table, endr)
@@ -178,11 +183,16 @@ class AdminMemoria():
         self.stored[storage_idx] = None
         self.byte_swap(ram_idx, storage_idx)
 
-    def randint_exclude(self, a, b, exclude):
-        r = random.randint(a,b)
-        while r in exclude:
-            r = random.randint(a,b)
-        return r
+    def _guardar_swap(self, ram_idx, storage_idx):
+        div_ram = self.loaded[ram_idx]
+        div_storage = self.stored[storage_idx]
+        div_ram['carregada'] = False
+        div_storage['carregada'] = True
+        div_ram['base'], div_storage['base'] = div_storage['base'], div_ram['base']
+        self.loaded[ram_idx] = div_storage
+        self.stored[storage_idx] = div_ram
+        self.byte_swap(ram_idx, storage_idx)
+        
 
     def byte_swap(self, ram_idx, storage_idx):
         """ Troca uma página da ram com a memória secundária. """
@@ -195,6 +205,12 @@ class AdminMemoria():
         # SWAP bytes
         self.ram[ram_ptr] = hd_bytes
         self.hd[hd_ptr] = ram_bytes
+
+    def randint_exclude(self, a, b, exclude):
+        r = random.randint(a,b)
+        while r in exclude:
+            r = random.randint(a,b)
+        return r
 
     def page_pointers(self, idx):
         return slice(idx*self.PAGE_SIZE, (idx+1)*self.PAGE_SIZE)
