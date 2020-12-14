@@ -1,4 +1,5 @@
 import random
+import math
 
 class AdminMemoria():
 
@@ -17,6 +18,8 @@ class AdminMemoria():
 
         self.loaded = {}
         self.stored = {}
+        self.excluded = {}
+        self.keep = set()
 
         #===============
         # Páginas
@@ -33,29 +36,62 @@ class AdminMemoria():
         #===============
         # Segmento, Base, Tamanho
 
+
+    #=============
+    # Public
+    #=============
     def acessar(self, process, endr):
-        if tipo == 'pagina':
+        if endr < 0x100:
+            return endr
+
+        if self.tipo == 'pagina':
+            
             # Pega table
             table = process.div_table
             # Pega a página (divisão)
             div = self._get_divisao(table, endr)
-            # Checa se a pagina está carregado na memória
-            if self._esta_carregada(div):
-                return self._converter(table, endr)
-            else:
-                # Se não estiver, acha-la no storage e guarda-la em ram
-                self._guardar_ram(div)
-                return self._converter(table, endr)
 
-    def gravar(self, endr, bytes):
-        pass
+            # Se a página não estiver carregada na memória, acha-la no storage 
+            # e guarda-la em ram
+            if not self._esta_carregada(table, endr):
+                ram_idx = self.randint_exclude(1, self.N_PAGES_RAM-1, self.excluded)
+                storage_idx = div['base'] // self.PAGE_SIZE
+                self._guardar_ram(ram_idx, storage_idx)
+            
+            # Retorna o novo endereço
+            endr_fisico = self._converter(table, endr)
+            print(f" |-> Convertendo {endr:04X} -> {endr_fisico:04X}")
+            return endr_fisico
+
+    def process_memory(self, process):
+        ''' Cria processo na memória segundo o método de administração escolhido. '''
+        if self.tipo == 'pagina':
+            self.process_pages(process)
+
+    #===================
+    # Private
+    #===================
+    def _get_free_storage_idx(self):
+        """ Escolhe uma posição livre do HD. """
+        if not self.stored:
+            return 0
+
+        a = min(self.stored)
+        b = max(self.stored)
+
+        if a == 0 and b == self.N_PAGES_STORAGE:
+            return None
+
+        for storage_idx in range(a-1,b+2):
+            if storage_idx >= 0 and storage_idx < self.N_PAGES_STORAGE and (not self.stored[storage_idx]):
+                return storage_idx
 
     def _ativar_loader(self, base, nbytes):
-        self.sistop.loader(base, nbytes)
+        return self.sistop.loader(base, nbytes)
 
     def _get_divisao(self, table, endr):
         ''' Retorna a divisão em que se encontra o endereço. '''
-        if tipo == 'pagina':
+        if self.tipo == 'pagina':
             return table[(endr & 0xF00) >> 8]
 
     def _converter(self, table, endr):
@@ -66,13 +102,17 @@ class AdminMemoria():
 
     def _desconverter(self, endr):
         ''' Converte endereço físico em virtual. '''
-        if tipo == 'pagina':
+        if self.tipo == 'pagina':
             div = self._get_divisao(self.loaded, endr)
-            return div['N']*self.PAGE_SIZE + div['base'] - endr
+            return div['N']*self.PAGE_SIZE + (endr - div['base'])
 
     #=====================
     # Paginas
     #=====================
+    def process_pages(self, process):
+        # Cria as paginas e da load nelas
+        self._carregar_paginas(process)
+
     def _criar_pagina(self, N, base):
         return {
             "N": N,
@@ -85,9 +125,35 @@ class AdminMemoria():
         N = (endr & 0xF00) >> 8
         return table[N]['carregada']
 
-    def _carregar_paginas(self, *args):
-        base = randint()
-        while self._ativar_loader(base, self.PAGE_SIZE):
+    def _carregar_paginas(self, process):
+        N = 0
+        run = 1
+
+        while run:
+            # Indice de inserção aleatório
+            ram_idx = self.randint_exclude(1, self.N_PAGES_RAM-1, self.excluded)
+            base = ram_idx * self.PAGE_SIZE
+
+            print(f":: Sorteando índice <{ram_idx}>")
+            # Se já houver página nesse indice
+            if self.loaded.get(ram_idx, None):
+                # Guarda a pagina no hd
+                storage_idx = self._get_free_storage_idx()
+                self._guardar_hd(self.loaded[ram_idx], storage_idx)
+                print(f":: - Já há página nesse índice, guardando ela em <{storage_idx}>")
+
+            # Cria página
+            N = (int(self.mvn.peek_buffer(4), 16) & 0xF00 ) >> 8
+            page = self._criar_pagina(N, base)
+            process.div_table[N] = page
+            self.loaded[ram_idx] = page
+
+            print(f":: Inserindo página <{N}> na posição <{base:04X}> da ram.")
+
+            # Escreve na ram
+            run = self._ativar_loader(base, self.PAGE_SIZE)
+
+            print(":: DUMP\n", self.mvn.dump(base, base+self.PAGE_SIZE))
 
     #=====================
     # Segmentos
@@ -96,15 +162,21 @@ class AdminMemoria():
     def _carregar_segmentos(self, *args):
         pass
 
+    def _guardar_hd(self, ram_idx, storage_idx):
+        div = self.loaded[ram_idx]
+        div['carregada'] = False
+        div['base'] = storage_idx*self.PAGE_SIZE
+        self.loaded[ram_idx] = None
+        self.stored[storage_idx] = div
+        self.byte_swap(ram_idx, storage_idx)
 
-    def _guardar_hd(self, *args):
-        pass
-
-    def _guardar_ram(self, *args):
-        pass
-
-    def _swap(self, *args):
-        pass
+    def _guardar_ram(self, ram_idx, storage_idx):
+        div = self.stored[storage_idx]
+        div['carregada'] = True
+        div['base'] = ram_idx*self.PAGE_SIZE
+        self.loaded[ram_idx] = div 
+        self.stored[storage_idx] = None
+        self.byte_swap(ram_idx, storage_idx)
 
     def randint_exclude(self, a, b, exclude):
         r = random.randint(a,b)
@@ -112,6 +184,19 @@ class AdminMemoria():
             r = random.randint(a,b)
         return r
 
+    def byte_swap(self, ram_idx, storage_idx):
+        """ Troca uma página da ram com a memória secundária. """
+        ram_ptr = self.page_pointers(ram_idx)
+        ram_bytes = self.ram[ram_ptr]
 
+        hd_ptr = self.page_pointers(storage_idx)
+        hd_bytes = self.hd[hd_ptr]
+
+        # SWAP bytes
+        self.ram[ram_ptr] = hd_bytes
+        self.hd[hd_ptr] = ram_bytes
+
+    def page_pointers(self, idx):
+        return slice(idx*self.PAGE_SIZE, (idx+1)*self.PAGE_SIZE)
 
         
