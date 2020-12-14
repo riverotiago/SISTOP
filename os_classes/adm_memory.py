@@ -1,3 +1,5 @@
+import random
+
 class AdminMemoria():
 
     def __init__(self, tipo, mvn, sistop):
@@ -84,6 +86,7 @@ class AdminMemoria():
         return table[N]['carregada']
 
     def _carregar_paginas(self, *args):
+        base = randint()
         while self._ativar_loader(base, self.PAGE_SIZE):
 
     #=====================
@@ -102,6 +105,12 @@ class AdminMemoria():
 
     def _swap(self, *args):
         pass
+
+    def randint_exclude(self, a, b, exclude):
+        r = random.randint(a,b)
+        while r in exclude:
+            r = random.randint(a,b)
+        return r
 
 
 
