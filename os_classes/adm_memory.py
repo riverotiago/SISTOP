@@ -285,7 +285,7 @@ class AdminMemoria():
 
     def _procurar_posicao(self, tamanho):
         ''' Procura a melhor posição para inserção do segmento. '''
-        print(f":: Procurando a melhor posição para inseração de um segmento com <{tamanho}> bytes")
+        print(f":: Procurando a melhor posição para inserção de um segmento com <{tamanho}> bytes")
         self._mapear_segmentos()
         print(self.segment_map)
         # Loop pelos segmentos já alocados
