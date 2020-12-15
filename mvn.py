@@ -37,6 +37,7 @@ class Simulador():
         #/////////////////
         #// Sistema operacional
         self.sistop = None
+        self.time = 0
 
         #/////////////////
         #// Registers
@@ -173,7 +174,11 @@ class Simulador():
         self.updateCI()
 
     def OS(self, op):
-        if op == 3:
+        if op == 0:
+            self.time -= 1
+            self.sistop.IO()
+            self.updateCI()
+        elif op == 3:
             # Chama monitor de overlay
             # Lê os prox 2 bytes
             self.sistop.monitor_de_overlay()
@@ -239,6 +244,7 @@ class Simulador():
     #===========================
 
     def tratar(self, instru, op):
+        self.time += 1
         func = self.INSTRUCOES[instru]
 
         # Transforma o endereço virtual para real
