@@ -218,6 +218,9 @@ class SistemaOperacional:
     def elapsed_time(self, dispositivo):
         return self.time - dispositivo.last()
 
+    def IO(self):
+        pass
+
     #=====================
     # Multiprogramação
     #=====================
@@ -226,6 +229,7 @@ class SistemaOperacional:
             process = self.ProcessList[id]
 
             if process.state == 0: continue # Pula processos finalizados
+            print(f"\n Processo {id}")
 
             # Recupera dados do processo
             self.current_process = process
@@ -234,25 +238,25 @@ class SistemaOperacional:
             # Recupera o CI atual do processo,
             self.mvn.CI = self.mem_admin.acessar(process, process.CI)
                 
-            # Mantem a página em execução fixa
-            #keep_ram_idx = self.keep_page(process)
+            # Mantem a divisão em execução fixa
+            #idx = self.mem_admin.keep(self.mvn.CI)
 
             # Execute
             self.mvn.AC = process.AC
             self.mvn.run_step()
 
-            # Libera a página de estar fixa
-            #self.unkeep_page(keep_ram_idx)
+            # Libera a divisão de estar fixa
+            #self.mem_admin.unkeep(idx)
 
             # Check for end
             if self.mvn.state == 0:
                 self.garbage.append(id)
                 print(f"Processo <{id}> terminou. ")
-
-            # Save
-            process.state = self.mvn.state 
-            process.CI = self.mem_admin._desconverter(self.mvn.CI)
-            process.AC = self.mvn.AC 
+            else:
+                # Save
+                process.state = self.mvn.state 
+                process.CI = self.mem_admin._desconverter(self.mvn.CI)
+                process.AC = self.mvn.AC 
 
     #=====================
     # Executar código
@@ -261,6 +265,7 @@ class SistemaOperacional:
         running = True
         while running:
             self.multiprog()
+            #print(f"==========\nMVN Elapsed {self.mvn.time}ns")
 
             # Remove processos não utilizados
             if self.garbage:
@@ -275,7 +280,11 @@ mvn = Simulador()
 so = SistemaOperacional(mvn)
 
 # Load program
-so.load_program('print10_v2.seg')
+#so.load_program('print10_v2.seg')
+so.load_program('p1.seg')
+so.load_program('p2.seg')
+#so.load_program('p3.seg')
+#so.load_program('p4.seg')
 print("Páginas carregadas\n")
 print("Processos\n",so.ProcessList,"\n")
 
