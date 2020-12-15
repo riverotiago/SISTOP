@@ -1,0 +1,297 @@
+INICIANDO MVN
+
+
+:: Carregando programa
+:: Buffer >
+:: Processo <0> criado.
+:: Limites 256, 513
+:: Carregando o segmento 1
+:: - Criando segmento 1, na base 0100 com tamanho 21
+:: -> Carregando 0100
+:: -> Limites 0100, 0100
+L 0100 03
+L 0101 00
+L 0102 0A
+L 0103 0E
+L 0104 00
+L 0105 00
+L 0106 13
+L 0107 00
+L 0108 00
+L 0109 14
+L 010A 01
+L 010B 12
+L 010C 05
+L 010D 02
+L 010E 00
+L 010F 00
+L 0110 01
+L 0111 03
+L 0112 0C
+L 0113 00
+L 0114 00
+::DUMP
+    0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+10 03 00 0A 0E 00 00 13 00 00 14 01 12 05 02 00 00
+11 01 03 0C 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+:: Carregando o segmento 2
+> Desfragmentando: base_temp: 256 nova_base:256 next:277
+:: - Criando segmento 2, na base 0115 com tamanho 1
+:: -> Carregando 0115
+:: -> Limites 0200, 0200
+L 0200 01
+::DUMP
+    0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+11 01 03 0C 00 00 01 00 00 00 00 00 00 00 00 00 00
+
+:: Visão da memória: [(1, 256, 21), (2, 277, 1), (0, 278, 3818)]
+::
+
+
+Páginas carregadas
+
+Processos
+ {0: <os_classes.process_management.ProcessControlBlock object at 0x000001CD2BDE06C8>}
+
+-> Acessando endr: 0100
+ |-> Convertendo 0100 -> 0100
+  RUNNING at 0100 LV(3) 000A [AC:0]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:10]
+PD 10 hex:0A
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:10]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:10]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:10]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:9]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:9]
+PD 9 hex:09
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:9]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:9]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:9]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:8]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:8]
+PD 8 hex:08
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:8]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:8]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:8]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:7]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:7]
+PD 7 hex:07
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:7]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:7]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:7]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:6]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:6]
+PD 6 hex:06
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:6]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:6]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:6]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:5]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:5]
+PD 5 hex:05
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:5]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:5]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:5]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:4]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:4]
+PD 4 hex:04
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:4]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:4]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:4]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:3]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:3]
+PD 3 hex:03
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:3]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:3]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:3]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:2]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:2]
+PD 2 hex:02
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:2]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:2]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:2]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:1]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:1]
+PD 1 hex:01
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:1]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:1]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 010C
+ |-> Convertendo 010C -> 010C
+  RUNNING at 010C -(5) 0200 [AC:1]
+-> Acessando endr: 0200
+ |-> Convertendo 0200 -> 0115
+-> Acessando endr: 010F
+ |-> Convertendo 010F -> 010F
+  RUNNING at 010F JP(0) 0103 [AC:0]
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+-> Acessando endr: 0103
+ |-> Convertendo 0103 -> 0103
+  RUNNING at 0103 PD(14) 0000 [AC:0]
+PD 0 hex:00
+-> Acessando endr: 0106
+ |-> Convertendo 0106 -> 0106
+  RUNNING at 0106 CP(19) 0000 [AC:0]
+-> Acessando endr: 0109
+ |-> Convertendo 0109 -> 0109
+  RUNNING at 0109 JPE(20) 0112 [AC:0]
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+-> Acessando endr: 0112
+ |-> Convertendo 0112 -> 0112
+  RUNNING at 0112 HM(12) 0000 [AC:0]
+-> Acessando endr: 0000
+----------------HALTED
+Processo <0> terminou.
