@@ -41,7 +41,7 @@ class AdminMemoria():
     # Public
     #=============
     def acessar(self, process, endr):
-        print(f"-> Acessando endr: {endr:04X}")
+        #print(f"-> Acessando endr: {endr:04X}")
         if endr < 0x100:
             return endr
 
@@ -73,13 +73,14 @@ class AdminMemoria():
 
             # Acha o segmento do endereço acessado
             table = process.div_table
-            idx, segment = self._procurar_endr(table, endr)
+            print(table)
+            idx, segment = self._procurar_endr(process, table, endr)
 
             # Se não estiver carregado, carrega-lo na memória
             if not self._esta_carregado(segment):
                 # Procura o segmento no HD
-                idx, segment = self._procurar_endr(self.stored, endr)
-                print(f":: Segmento {segment} não carregado na memória. Achado em {idx}")
+                idx, segment = self._procurar_endr(process, self.stored, endr)
+                print(f":: Segmento ({segment['process'].ID},{segment['N']}) não carregado na memória. Achado em {idx}")
                 # Acha a melhor posição para inserção
                 pos = self._procurar_posicao(segment['tamanho'])
                 print(f":: Inserindo segmento em {pos:04X}")
@@ -87,7 +88,7 @@ class AdminMemoria():
             
             # Retorna o novo endereço
             endr_fisico = (endr - segment['endr_ini']) + segment['base']
-            print(f" |-> Convertendo {endr:04X} -> {endr_fisico:04X}")
+            #print(f" |-> Convertendo {endr} -> {endr_fisico}")
             return endr_fisico
 
     def process_memory(self, process):
@@ -157,7 +158,8 @@ class AdminMemoria():
             return div['N']*self.PAGE_SIZE + (endr - div['base'])
 
         elif self.tipo == "segmento":
-            ram_idx, segment = self._procurar_endr(self.loaded, endr)
+            #print("desconverter endereço",endr, self.sistop.current_process.ID, self.loaded.keys())
+            ram_idx, segment = self._procurar_endr_fisico(self.sistop.current_process, self.loaded, endr)
             return endr - segment['base'] + segment['endr_ini']
 
     #=====================
@@ -249,7 +251,7 @@ class AdminMemoria():
             print(f"::DUMP\n", self.mvn.dump(base, base+tamanho))
             
             # Desaloca o segmento
-            self._desalocar_segmento(idx, segment)
+            #self._desalocar_segmento(idx, segment)
 
 
         self._mapear_segmentos()
@@ -265,12 +267,19 @@ class AdminMemoria():
             'tamanho':tamanho
         }
 
+    def _ordenar_segmentos(self):
+        ''' Retorna uma lista dos índices dos segmentos por ordem de localização na memória. '''
+        o = [i for i in sorted( self.loaded, key=lambda n: self.loaded[n]['base'])]
+        return o
+
     def _mapear_segmentos(self):
         ''' Mapeia os espaços vazios e os espaços ocupados pelos segmentos. '''
         m = []
         B = 0x100 
         L = 0x1000
-        for n in self.loaded:
+        
+        segs = self._ordenar_segmentos()
+        for n in segs:
             sb = self.loaded[n]['base']
             sl = self.loaded[n]['tamanho']
             if not B == sb:
@@ -366,14 +375,26 @@ class AdminMemoria():
         else:
             return self.hd[ini:end]
 
-    def _procurar_endr(self, tabela, endr):
+    def _procurar_endr(self, process, tabela, endr):
         ''' Retorna o idx e o segmento que contem o endereço. '''
         for idx in tabela:
             segment = tabela[idx]
             ini = segment['endr_ini']
             end = ini + segment['tamanho']
-            if segment['endr_ini'] <= endr < end:
+            print(idx,":", ini, endr,end)
+            if (ini <= endr < end) and process == segment['process']:
                 return idx, segment
+        return None,None
+
+    def _procurar_endr_fisico(self, process, tabela, endr):
+        ''' Retorna o idx e o segmento que contem o endereço. '''
+        for idx in tabela:
+            segment = tabela[idx]
+            ini = segment['base']
+            end = ini + segment['tamanho']
+            if (ini <= endr < end) and process == segment['process']:
+                return idx, segment
+        return None,None
 
     def _procurar_segmento(self, tabela, segment):
         ''' Retorna o idx do segmento. '''
