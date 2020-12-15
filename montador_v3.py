@@ -388,7 +388,10 @@ class Montador:
                 segmentos = self.montagem_segmentos(fila_montagem)
                 for n in segmentos:
                     code_hex = segmentos[n]
-                    self.write_hex(fileout.replace('.hex', f'_seg{n}.hex'), code_hex)
+                    self.write_hex(fileout.replace('.hex', f'.seg{n}.hex'), code_hex)
+                # Acha endereços limites
+                ini, end = ENDR_LIMITES
+                self.write_hex(fileout.replace('.hex', '.seg'), f'{ini} {end} '+' '.join(str(i) for i in segmentos))
             else:
                 code_hex = self.montagem_loader(fila_montagem)
                 print(code_hex)
