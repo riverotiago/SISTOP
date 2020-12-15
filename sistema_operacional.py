@@ -17,7 +17,11 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Memoria
-        self.mem_admin = AdminMemoria('segmento', self.mvn, self)
+        tipo = 'segmento'
+        #i = input("Qual tipo de memória?\n1. paginada\n2. segmentada.\n>> ")
+        #if i == 1:
+        #    tipo = 'paginada'
+        self.mem_admin = AdminMemoria(tipo, self.mvn, self)
 
         # Processos
         self.ProcessList = {}
