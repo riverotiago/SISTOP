@@ -33,7 +33,7 @@ class Simulador():
             0x13:self.CP, 0x14:self.JPE, 0x15:self.JPNE
         }
         self.REV_INSTRU = ['JP','JZ','JN','LV','+','-','*','/','LD','MM','SC','RS','HM','GD','PD','OS','>>','<<','&&','CP','JPE','JPNE']
-        self.OP_ABS_INSTRUCOES = [3, 0xF, 0x13, 0x10, 0x11]
+        self.OP_ABS_INSTRUCOES = [3, 14, 0xF, 0x13, 0x10, 0x11]
         #/////////////////
         #// Sistema operacional
         self.sistop = None
