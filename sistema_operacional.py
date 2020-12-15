@@ -17,7 +17,7 @@ class SistemaOperacional:
         self.current_overlay = 'root'
 
         # Memoria
-        self.mem_admin = AdminMemoria('pagina', self.mvn, self)
+        self.mem_admin = AdminMemoria('segmento', self.mvn, self)
 
         # Processos
         self.ProcessList = {}
@@ -171,16 +171,20 @@ class SistemaOperacional:
 
     def load_program(self, filepath):
         print("\n\n:: Carregando programa")
-        self.mvn.load_buffer(filepath)
+        if '.hex' in filepath:
+            self.mvn.load_buffer(filepath)
+        elif '.seg' in filepath:
+            self.mem_admin.seg_list(filepath)
+
         print(":: Buffer >", self.mvn.buffer)
 
         # Cria processo
         process = self.create_process(0, None)
+        process.filepath = filepath
         print(f":: Processo <{process.ID}> criado.")
 
         # Pega os limites do endereço 
-        ini = int(self.mvn.buffer[:4],16)
-        end = int(self.mvn.buffer[-6:-2],16)
+        ini, end = self.mem_admin.get_limites()
         print(f":: Limites {ini}, {end}")
 
         # Carrega o programa na memória
@@ -267,7 +271,7 @@ mvn = Simulador()
 so = SistemaOperacional(mvn)
 
 # Load program
-so.load_program('print10.hex')
+so.load_program('print10_v2.seg')
 print("Páginas carregadas\n")
 print("Processos\n",so.ProcessList,"\n")
 
