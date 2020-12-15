@@ -6,7 +6,6 @@ class ProcessControlBlock():
         self.state = 1
         self.tipo = tipo
         self.div_table = {}
-        self.pages = {}
 
     def dispositivo(self, *args):
         pass
