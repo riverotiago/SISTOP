@@ -12,12 +12,11 @@ loop    PD      ; Print
         - one     ; subtrai 1 de val
         JP loop
 fim     HM      ; Encerra
-        # ini
         segmentoend
 
         segmento 2
         @$ /200
 one     K /1
-        # /200
+        # ini
         segmentoend
 
