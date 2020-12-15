@@ -73,13 +73,17 @@ class AdminMemoria():
 
             # Acha o segmento do endereço acessado
             table = process.div_table
-            storage_idx, segment = self._procurar_endr(table, endr)
+            idx, segment = self._procurar_endr(table, endr)
 
             # Se não estiver carregado, carrega-lo na memória
             if not self._esta_carregado(segment):
+                # Procura o segmento no HD
+                idx, segment = self._procurar_endr(self.stored, endr)
+                print(f":: Segmento {segment} não carregado na memória. Achado em {idx}")
                 # Acha a melhor posição para inserção
                 pos = self._procurar_posicao(segment['tamanho'])
-                self._alocar_segmento(storage_idx, segment, pos)
+                print(f":: Inserindo segmento em {pos:04X}")
+                self._alocar_segmento(idx, segment, pos)
             
             # Retorna o novo endereço
             endr_fisico = (endr - segment['endr_ini']) + segment['base']
@@ -234,14 +238,19 @@ class AdminMemoria():
             # Cria o segmento
             base = self._procurar_posicao(tamanho)
             idx = self._get_free_idx(self.loaded) 
-            self.loaded[idx] = self._criar_segmento(N, base, tamanho, ini, process)
+            segment = self._criar_segmento(N, base, tamanho, ini, process)
+            self.loaded[idx] = segment
             print(f":: - Criando segmento {N}, na base {base:04X} com tamanho {tamanho}")
 
             # Guarda o ponteiro para o segmento dentro do PCB
-            process.div_table[N] = self.loaded[idx]
+            process.div_table[N] = segment
 
             self._ativar_loader(base)
             print(f"::DUMP\n", self.mvn.dump(base, base+tamanho))
+            
+            # Desaloca o segmento
+            self._desalocar_segmento(idx, segment)
+
 
         self._mapear_segmentos()
         print(f":: Visão da memória:", self.segment_map)
@@ -276,14 +285,16 @@ class AdminMemoria():
 
     def _procurar_posicao(self, tamanho):
         ''' Procura a melhor posição para inserção do segmento. '''
+        print(f":: Procurando a melhor posição para inseração de um segmento com <{tamanho}> bytes")
         self._mapear_segmentos()
+        print(self.segment_map)
         # Loop pelos segmentos já alocados
         # Há espaço vazio?
         vazio = 0
         for s in self.segment_map:
             if s[0] == 0:
                 vazio += s[2] + 1
-            if s[0] == 0 >= tamanho:
+            if s[0] == 0 and s[2] >= tamanho:
                 return s[1]
 
         # Houver, mas não contíguo, desfragmentar a ram e retornar a posição
@@ -302,14 +313,15 @@ class AdminMemoria():
         # Junta o final de um segmento com o final do outro 
         # a partir do inicio da memória livre (0x100)
         nova_base = 0x100
-        segments = [self.loaded[n] for n in self.loaded]
+        idxs = [n for n in self.loaded]
+        segments = [self.loaded[n] for n in idxs]
         mems = [self._get_mem(segment) for segment in segments]
 
         for k,segment in enumerate(segments):
             # Muda a tabela
             base_temp = segment['base']
             segment['base'] = nova_base
-            print(f"> Desfragmentando: base_temp: {base_temp} nova_base:{nova_base} next:{base_temp + segment['tamanho']}")
+            print(f"> Desfragmentando Segmento {idxs[k]}: base_temp: {base_temp} nova_base:{nova_base} next:{base_temp + segment['tamanho']}")
             nova_base = nova_base + segment['tamanho']
             # Muda a memória de lugar
             self.ram[base_temp:nova_base] = mems[k]
@@ -373,17 +385,21 @@ class AdminMemoria():
     def _desalocar_segmento(self, ram_idx, segment):
         ''' Faz a desalocação de um segmento na memória. '''
         print(f":: Desalocando segmento <{ram_idx}> (Processo {segment['process'].ID}, N {segment['N']})")
-        segment['carregado'] = False
         mem = self._get_mem(segment)
+        segment['carregado'] = False
+        # Guarda memória no HD
         segment['mem'] = mem
         storage_idx = self._get_free_idx(self.stored)
         self.stored[storage_idx] = segment
         del self.loaded[ram_idx]
 
-    def _alocar_segmento(self, storage_idx, segment, base=None):
+    def _alocar_segmento(self, storage_idx, segment, base):
         ''' Faz a alocação de um segmento na memória, a partir da posição base. '''
-        segment['carregado'] = True
+        print(f":: Alocando segmento <{storage_idx}> (Processo {segment['process'].ID}, N {segment['N']})")
         ram_idx = self._get_free_idx(self.loaded)
+        segment['carregado'] = True
+        segment['base']= base
+        # Guarda memória na RAM
         self.ram[base:base + segment['tamanho']] = segment['mem']
         self.loaded[ram_idx] = segment
         del self.stored[storage_idx]
