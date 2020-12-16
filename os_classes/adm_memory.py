@@ -41,7 +41,6 @@ class AdminMemoria():
     # Public
     #=============
     def acessar(self, process, endr):
-        #print(f"-> Acessando endr: {endr:04X}")
         if endr < 0x100:
             return endr
 
@@ -73,21 +72,21 @@ class AdminMemoria():
 
             # Acha o segmento do endereço acessado
             table = process.div_table
-            print(table)
             idx, segment = self._procurar_endr(process, table, endr)
 
             # Se não estiver carregado, carrega-lo na memória
             if not self._esta_carregado(segment):
                 # Procura o segmento no HD
                 idx, segment = self._procurar_endr(process, self.stored, endr)
-                print(f":: Segmento ({segment['process'].ID},{segment['N']}) não carregado na memória. Achado em {idx}")
+                print(f"\n:: Segmento ({segment['process'].ID},{segment['N']}) não carregado na memória. Achado em {idx}")
                 # Acha a melhor posição para inserção
                 pos = self._procurar_posicao(segment['tamanho'])
-                print(f":: Inserindo segmento em {pos:04X}")
+                #print(f":: Inserindo segmento em {pos:04X}")
                 self._alocar_segmento(idx, segment, pos)
             
             # Retorna o novo endereço
             endr_fisico = (endr - segment['endr_ini']) + segment['base']
+            print(f"Convertendo V:{endr:04X} -> F:{endr_fisico:04X}", end=', ')
             #print(f" |-> Convertendo {endr} -> {endr_fisico}")
             return endr_fisico
 
@@ -229,7 +228,7 @@ class AdminMemoria():
         path = process.filepath
         
         for N in self.seg_numbers:
-            print(f":: Carregando o segmento {N}")
+            print(f"::-------------Carregando o segmento {N}--------------")
             self.mvn.load_buffer(f'{path}{N}.hex')
 
             # Calula tamanho do segmento
@@ -248,10 +247,10 @@ class AdminMemoria():
             process.div_table[N] = segment
 
             self._ativar_loader(base)
-            print(f"::DUMP\n", self.mvn.dump(base, base+tamanho))
+            print(f"::DUMP\n ", self.mvn.dump(base, base+tamanho), '\n------------------------------------')
             
             # Desaloca o segmento
-            #self._desalocar_segmento(idx, segment)
+            self._desalocar_segmento(idx, segment)
 
 
         self._mapear_segmentos()
@@ -294,9 +293,8 @@ class AdminMemoria():
 
     def _procurar_posicao(self, tamanho):
         ''' Procura a melhor posição para inserção do segmento. '''
-        print(f":: Procurando a melhor posição para inserção de um segmento com <{tamanho}> bytes")
+        #print(f":: Procurando a melhor posição para inserção de um segmento com <{tamanho}> bytes")
         self._mapear_segmentos()
-        print(self.segment_map)
         # Loop pelos segmentos já alocados
         # Há espaço vazio?
         vazio = 0
@@ -381,7 +379,6 @@ class AdminMemoria():
             segment = tabela[idx]
             ini = segment['endr_ini']
             end = ini + segment['tamanho']
-            print(idx,":", ini, endr,end)
             if (ini <= endr < end) and process == segment['process']:
                 return idx, segment
         return None,None
