@@ -5,6 +5,7 @@ class ProcessControlBlock():
         self.AC = 0
         self.state = 1
         self.tipo = tipo
+        self.time = 0
         self.div_table = {}
 
     def dispositivo(self, *args):
