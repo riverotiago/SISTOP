@@ -61,7 +61,7 @@ class SistemaOperacional:
         try:
             while (not nbytes) or (next_endr < offset + nbytes):
                 endr, b = self.mvn.read_buffer(4), self.mvn.read_buffer(2)
-                print(f"L {endr:04X} {b:02X}")
+                #print(f"L {endr:04X} {b:02X}")
                 self.mvn.storeByte( base + endr - offset, b)
 
                 info = self.mvn.peek_buffer(4)
@@ -174,13 +174,13 @@ class SistemaOperacional:
        pass 
 
     def load_program(self, filepath):
-        print("\n\n:: Carregando programa")
+        print("\n\n:: Carregando programa", filepath)
         if '.hex' in filepath:
             self.mvn.load_buffer(filepath)
         elif '.seg' in filepath:
             self.mem_admin.seg_list(filepath)
 
-        print(":: Buffer >", self.mvn.buffer)
+        #print(":: Buffer >", self.mvn.buffer)
 
         # Cria processo
         process = self.create_process(0, None)
@@ -219,7 +219,7 @@ class SistemaOperacional:
         return self.time - dispositivo.last()
 
     def IO(self):
-        pass
+        print("E/S", end=', ')
 
     #=====================
     # Multiprogramação
@@ -229,7 +229,7 @@ class SistemaOperacional:
             process = self.ProcessList[id]
 
             if process.state == 0: continue # Pula processos finalizados
-            print(f"\n Processo {id}")
+            print(f"Processo {id} ({process.time}ms): ",end='')
 
             # Recupera dados do processo
             self.current_process = process
@@ -244,14 +244,16 @@ class SistemaOperacional:
             # Execute
             self.mvn.AC = process.AC
             self.mvn.run_step()
+            process.time += self.mvn.delta 
 
             # Libera a divisão de estar fixa
             #self.mem_admin.unkeep(idx)
 
+            print('')
             # Check for end
             if self.mvn.state == 0:
                 self.garbage.append(id)
-                print(f"Processo <{id}> terminou. ")
+                print(f"Processo <{id}> terminou com {process.time}ms de execução. ")
             else:
                 # Save
                 process.state = self.mvn.state 
@@ -263,6 +265,7 @@ class SistemaOperacional:
     #=====================
     def run(self):
         running = True
+        processes = []
         while running:
             self.multiprog()
             #print(f"==========\nMVN Elapsed {self.mvn.time}ns")
@@ -272,9 +275,18 @@ class SistemaOperacional:
                 while len(self.garbage) > 0:
                     id = self.garbage.pop()
                     print(f":: Garbage collector -> Processo {id}")
+                    processes.append(self.ProcessList[id])
                     del self.ProcessList[id]
 
             running = self.ProcessList
+        
+        print(" Resumo de execução: ")
+        for p in processes:
+            print(f"Processo <{p.ID}> rodou por {p.time}ms; ")
+        print(" Mapa da memória final: ") 
+        print(self.mem_admin.segment_map)
+        print("")
+        
 
 mvn = Simulador()
 so = SistemaOperacional(mvn)
@@ -283,8 +295,8 @@ so = SistemaOperacional(mvn)
 #so.load_program('print10_v2.seg')
 so.load_program('p1.seg')
 so.load_program('p2.seg')
-#so.load_program('p3.seg')
-#so.load_program('p4.seg')
+so.load_program('p3.seg')
+so.load_program('p4.seg')
 print("Páginas carregadas\n")
 print("Processos\n",so.ProcessList,"\n")
 

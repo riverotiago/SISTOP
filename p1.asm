@@ -12,6 +12,8 @@ ini SC B1
 ;------ B1
     segmento 1
 B1  PD
+    LV /1 
+    PD    ; Indica que entrou no B1
     OS /0 ; 2 operações de entrada/saída
     OS /0
     + /F ; 5 unidades de tempo de processamento
@@ -26,6 +28,8 @@ B1  PD
 ;------ B2
     segmento 2
 B2  PD
+    LV /2 
+    PD    ; Indica que entrou no B2
     SC B1 ; Ativa B1
     + /F ; 4 unidades de tempo de processamento
     + /F
@@ -53,6 +57,8 @@ B2  PD
 ;------ B3
     segmento 3
 B3  PD
+    LV /3 
+    PD    ; Indica que entrou no B3
     + /F ; 3 unidades de tempo de processamento
     + /F
     + /F
