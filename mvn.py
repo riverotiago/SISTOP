@@ -149,7 +149,7 @@ class Simulador():
 
     def SC(self,op): #op = 12 bits
         """ Subroutine Call """
-        val = self.CI+3
+        val = self.sistop.mem_admin._desconverter(self.CI+3)
         self.storeByte(op, 0)
         self.storeByte(op+1, val >> 8)
         self.storeByte(op+2, val & 0xFF)
@@ -160,7 +160,7 @@ class Simulador():
         self.updateCI(op)
 
     def HM(self,op): #op = 12 bits
-        print("----------------HALTED")
+        print("HALTED")
         self.state = 0
         self.updateCI(op)
 
@@ -175,7 +175,7 @@ class Simulador():
 
     def OS(self, op):
         if op == 0:
-            self.time -= 1
+            self.time += 5
             self.sistop.IO()
             self.updateCI()
         elif op == 3:
@@ -265,10 +265,12 @@ class Simulador():
 
     def run_step(self):
         """ Executa a instrução atual apontada por CI. """
+        t0 = self.time
         if self.state == 1:
             instru, op = self.getNextInstruction()
-            print(f"  RUNNING at {self.CI:04X}",f'{self.REV_INSTRU[instru]}({instru})', f'{op:04X}', f'[AC:{self.AC}]',end='\n')
+            print(f"EXECUTANDO em {self.CI:04X}",f'{self.REV_INSTRU[instru]}',f'({op:04X})',end=', ')
             self.tratar(instru, op)
+        self.delta = self.time - t0
 
     def run(self, filepath):
         """ Carrega um arquivo na MVN e o roda. """
